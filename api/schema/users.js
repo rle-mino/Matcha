@@ -5,14 +5,14 @@ const register = Joi.object().keys({
 	username: Joi.string().alphanum().min(3).max(30).required(),
 	firstname: Joi.string().alphanum().min(2).max(30).required(),
 	lastname: Joi.string().alphanum().min(2).max(30).required(),
-	password: Joi.string().regex(/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8}/).required(),
+	password: Joi.string().regex(/(?=.*\w)(?=.*\d)(?=.*[A-Z]).{8}/).required(),
 	mail: Joi.string().email().required(),
 	birthdate: Joi.date().max(moment().subtract(18, 'y').format('MM-DD-YYYY')).required(),
 });
 
 const details = Joi.object().keys({
 	username: Joi.string().alphanum().min(3).max(30).required(),
-	password: Joi.string().regex(/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8}/).required(),
+	password: Joi.string().regex(/(?=.*\w)(?=.*\d)(?=.*[A-Z]).{8}/).required(),
 	sex: Joi.string().regex(/^(male|female|other)$/),
 	orientation: Joi.string().regex(/^(gay|bisexual|straight)$/),
 	bio: Joi.string().min(80),
@@ -29,7 +29,7 @@ const modif = Joi.object().keys({
 	username: Joi.string().alphanum().min(3).max(30),
 	firstname: Joi.string().alphanum().min(2).max(30),
 	lastname: Joi.string().alphanum().min(2).max(30),
-	password: Joi.string().regex(/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8}/).required(),
+	password: Joi.string().regex(/(?=.*\w)(?=.*\d)(?=.*[A-Z]).{8}/).required(),
 	mail: Joi.string().email(),
 	birthdate: Joi.date().max(moment().subtract(18, 'y').format('MM-DD-YYYY')),
 	sex: Joi.string().regex(/^(male|female|other)$/),
@@ -40,4 +40,12 @@ const modif = Joi.object().keys({
 	image: Joi.string().alphanum().regex(/^data:image\/(jpeg|png);base64,/),
 });
 
-export { register, details, modif, username };
+const search = Joi.object().keys({
+	searcher: Joi.string().alphanum().min(3).max(30).required(),
+	tags: Joi.array().max(10),
+	username: Joi.string().alphanum().min(3).max(30),
+	name: Joi.array(),
+	location: Joi.string(),
+});
+
+export { register, details, modif, username, search };

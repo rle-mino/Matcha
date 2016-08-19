@@ -8,12 +8,12 @@ const addRegister = async (req, res) => {
 	if (error) res.status(400).send(error.details);
 	else {
 		mongoConnectAsync(res, async (db) => {
-			const { password, username, mail } = req.body || '';
+			const { password, username, mail } = req.body;
 			const users = db.collection('users');
 			const already = await users.findOne({ $or: [{ username }, { mail }] });
-			console.log(already);
 			if (already) {
-				res.status(500).send(`Error - User ${username} already exist`);
+				res.status(500).send(`Error - User ${already.username === username ?
+													username : mail} already exist`);
 			} else {
 			await users.insert({
 				...req.body,
