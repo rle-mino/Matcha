@@ -8,7 +8,7 @@ const addDetails = async (req, res) => {
 	const { error } = await Joi.validate(req.body, userSchema.details, { abortEarly: false });
 	if (!error) {
 		mongoConnectAsync(res, async (db) => {
-			const { username, password } = req.body || '';
+			const { username, password } = req.body;
 			const users = db.collection('users');
 			const askedUser = await users.findOne({
 				username,
@@ -16,9 +16,11 @@ const addDetails = async (req, res) => {
 			});
 			const userTags = req.body.tags.map((atag) => atag.toLowerCase());
 			if (askedUser) {
+				const orientation = req.body.orientation || 'bisexual';
 				const detailsAndRegisterData = {
 					...req.body,
 					tags: userTags,
+					orientation,
 					};
 				delete detailsAndRegisterData.password;
 				delete detailsAndRegisterData.username;
@@ -32,38 +34,39 @@ const addDetails = async (req, res) => {
 	} else res.status(400).send(error.details);
 };
 
-const search = async (req, res) => {
-	const { error } = await Joi.validate(req.query, userSchema.search, { abortEarly: false });
+const updateInterest = (req, res) => {
+	const { error } = Joi.validate(req.body, userSchema.username, { abortEarly: false });
 	if (!error) {
-		const { searcherName, tags, username, location, name } = req.query;
 		mongoConnectAsync(res, async (db) => {
 			const users = db.collection('users');
-			const searchObject = {};
-			if (tags) searchObject.tags = tags;
-			if (username) searchObject.username = username;
-			if (location) searchObject.location = location;
-			if (name) {
-				searchObject.firstname = name[0];
-				searchObject.lastname = name[1];
-			}
-			const searcherInfo = await users.findOne({ username: searcherName }, {
-				username: 1,
-				orientation: 1,
-				sex: 1,
-			});
-			const searchResult = await users.find({ $or: [searchObject] }, {
-				username: 1,
-				firstname: 1,
-				lastname: 1,
-				image: 1,
-				tags: 1,
-				location: 1,
-			}).toArray();
-			res.status(200).send(searchResult);
+			const { username, requester } = req.body;
+			const verifiedRequester = await users.findOne({ username: requester });
+			if (verifiedRequester) {
+				const verifiedUsername = await users.findOne({ username });
+				if (verifiedUsername) {
+					for (let i = 0; i < verifiedUsername.interestedIn.length; i++) {
+						if (verifiedUsername.interestedIn[i] === requester) {
+							users.update({ username }, {
+								$inc: { interestCounter: -1 },
+								$pull: { interestedIn: requester },
+							});
+							await users.update({ username: requester }, { $pull: { interestedBy: username } });
+							res.status(200).send(`${requester}'s interest to ${username} successfully removed`);
+							return;
+						}
+					}
+					users.update({ username }, {
+						$inc: { interestCounter: 1 },
+						$push: { interestedIn: requester },
+					});
+					await users.update({ username: requester }, { $push: { interestedBy: username } });
+					res.status(200).send(`${requester}'s interest to ${username} successfully added`);
+				} else res.status(500).send(`${username} does not exist`);
+			} else res.status(500).send(`${requester} does not exist`);
 		});
 	} else {
-		res.status(400).send('Error - Invalid entry');
+		res.status(400).send(error.details);
 	}
 };
 
-export { addDetails, search };
+export { addDetails, updateInterest };

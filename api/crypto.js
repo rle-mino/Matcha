@@ -17,4 +17,8 @@ const decrypt = (pass) => {
 	return dec;
 };
 
-export { encrypt, decrypt };
+const tokenGenerator = () => Math.random().toString(36).substr(2)
+							+
+							Math.random().toString(36).substr(2);
+
+export { encrypt, decrypt, tokenGenerator };

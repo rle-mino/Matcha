@@ -1,11 +1,11 @@
 import Joi from 'joi';
 import mongoConnectAsync from '../mongo';
-import * as tagController from '../tag';
 import * as userSchema from '../schema/users';
+import mailer from '../mail';
 
-const getAllData = (req, res) => {
+const getSingular = (req, res) => {
 	const { error } = Joi.validate(req.query, userSchema.username);
-	const { username } = req.query;
+	const { username, requester } = req.query;
 	if (!error) {
 		mongoConnectAsync(res, async (db) => {
 			const users = db.collection('users');
@@ -13,13 +13,16 @@ const getAllData = (req, res) => {
 				password: 0,
 			});
 			if (askedUser) {
+				if (askedUser.username !== requester) {
+					await users.update({ username }, { $inc: { visit: 1 } });
+				}
 				res.send(askedUser);
 			} else {
 				res.status(500).send(`Error - ${username} not found`);
 			}
 		});
 	} else {
-		res.status(400).send('Error - Invalid entry');
+		res.status(400).send(error.details);
 	}
 };
 
@@ -27,7 +30,7 @@ const getFastDetails = (req, res) => {
 	const { error } = Joi.validate(req.query, userSchema.username);
 	if (!error) {
 		mongoConnectAsync(res, async (db) => {
-			const { username } = req.query;
+			const { username, requester } = req.query;
 			const users = db.collection('users');
 			const askedUser = await users.findOne({ username }, {
 				username: 1,
@@ -35,7 +38,16 @@ const getFastDetails = (req, res) => {
 				lastname: 1,
 				image: 1,
 				tags: 1,
+				popularity: 1,
+				interestedIn: 1,
 			});
+			askedUser.interestedTorequester = false;
+			for (let i = 0; i < askedUser.interestedIn.length; i++) {
+				if (askedUser.interestedIn[i] === requester) {
+					askedUser.interestedTorequester = true;
+				}
+			}
+			delete askedUser.interestedIn;
 			if (askedUser) {
 				res.status(200).send(askedUser);
 			} else {
@@ -43,8 +55,8 @@ const getFastDetails = (req, res) => {
 			}
 		});
 	} else {
-		res.status(400).send('Error - Invalid entry');
+		res.status(400).send(error.details);
 	}
 };
 
-export { getAllData, getFastDetails };
+export { getSingular, getFastDetails };
