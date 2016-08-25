@@ -29,7 +29,7 @@ const register = async (req, res) => {
 				const url = `http://localhost:8000/complete_registration?username=${encodeURI(username)}&resetkey=${encodeURI(token)}`;
 				await mailer(mail,
 							`Use this link to complete your registration ${url}`,
-							'Reset your password');
+							'Complete your registration');
 				res.status(200).send(`${username} has been successfully registred !`);
 			}
 		});

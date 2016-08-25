@@ -29,7 +29,6 @@ const changePassword = Joi.object().keys({
 
 const username = Joi.object().keys({
 	username: Joi.string().alphanum().min(3).max(30).required(),
-	requester: Joi.string().alphanum().min(3).max(30).required(),
 });
 
 const modif = Joi.object().keys({
@@ -63,4 +62,9 @@ const resetWithKey = Joi.object().keys({
 	password: Joi.string().regex(/(?=.*\w)(?=.*\d)(?=.*[A-Z]).{8}/).required(),
 });
 
-export { register, details, modif, username, search, changePassword, forgot, resetWithKey };
+const login = Joi.object().keys({
+	username: Joi.string().alphanum().min(3).max(30).required(),
+	password: Joi.string().regex(/(?=.*\w)(?=.*\d)(?=.*[A-Z]).{8}/).required(),
+});
+
+export { register, details, modif, username, search, changePassword, forgot, resetWithKey, login };
