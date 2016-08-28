@@ -11,64 +11,77 @@ const errorMessage = {
 
 const checkToken = async (req, db) => {
 	const logToken = req.get('logToken');
-	let loggedUser;
-	if (logToken) {
-		const users = db.collection('users');
-		loggedUser = await users.findOne({ 'loginToken.token': logToken });
-		if (loggedUser) {
-			const actualDate = new Date().getTime() / 1000;
-			const lifeTime = actualDate - loggedUser.loginToken.creaDate;
-			const token = crypto.tokenGenerator();
-			const newLoginToken = { token, creaDate: actualDate };
-			// IF IS MORE THAN 10SEC AND LESS THAN 2 WEEKS
-			if (lifeTime > 10 && lifeTime < 1209600) {
-				await users.update({ username: loggedUser.username },
-				{
-					$set: { loginToken: newLoginToken },
-				});
-				loggedUser.loginToken.token = token;
-			// IF IS MORE THAN 2 WEEKS
-			} else if (lifeTime > 1209600) {
-				await users.update({ username: loggedUser.username }, { $unset: { loginToken: '' } });
-				return (undefined);
-			// IF IS LESS THAN 10S
-			} else if (lifeTime <= 10) {
-				await users.update({ username: loggedUser.username },
-									{ $set: { loginToken: {
-												token: loggedUser.loginToken.token,
-												creaDate: actualDate,
-												},
-											} });
-			}
-		}
+	if (!logToken) return (null);
+	const users = db.collection('users');
+	const loggedUser = await users.findOne({ 'loginToken.token': logToken });
+	if (!loggedUser) return (null);
+	const actualDate = new Date().getTime() / 1000;
+	const lifeTime = actualDate - loggedUser.loginToken.creaDate;
+	const token = crypto.tokenGenerator();
+	const newLoginToken = { token, creaDate: actualDate };
+	// IF IT'S MORE THAN 10SEC AND LESS THAN 2 WEEKS
+	if (lifeTime > 10 && lifeTime < 1209600) {
+		await users.update({ username: loggedUser.username },
+		{
+			$set: { loginToken: newLoginToken },
+		});
+		return ({
+			...loggedUser,
+			loginToken: { token },
+		});
+	// IF IT'S MORE THAN 2 WEEKS
+	} else if (lifeTime > 1209600) {
+		await users.update({ username: loggedUser.username }, { $unset: { loginToken: '' } });
+	// IF IT'S LESS THAN 10S
+	} else if (lifeTime <= 10) {
+		await users.update({ username: loggedUser.username },
+							{ $set: {
+								loginToken: {
+										token: loggedUser.loginToken.token,
+										creaDate: actualDate,
+									},
+								},
+							});
 	}
-	return loggedUser;
+	return (loggedUser);
 };
 
-const login = (req, res) => {
+const login = async (req, res) => {
 	const { error } = Joi.validate(req.body, userSchema.login, { abortEarly: false });
-	if (error) res.status(400).send(error.details);
-	else {
-		mongoConnectAsync(res, async (db) => {
-			const { username, password } = req.body;
-			const users = db.collection('users');
-			const askedUser = await users.findOne({ username, password: crypto.encrypt(password) });
-			if (!askedUser) res.status(500).send('Invalid username or password');
-			else {
-				const loginToken = {
-					token: crypto.tokenGenerator(),
-					creaDate: new Date().getTime() / 1000,
-				};
-				await users.update({ username }, { $set: { loginToken } });
-				res.status(200).send({
-					status: 'success',
-					login: username,
-					details: `${username} successfully connected`,
-					newToken: loginToken,
-				});
-			}
+	if (error) await res.status(400).send(error.details);
+	mongoConnectAsync(res, async (db) => {
+		const { username, password } = req.body;
+		const users = db.collection('users');
+		const askedUser = await users.findOne({
+			username,
+			password: crypto.encrypt(password),
 		});
-	}
+		if (!askedUser) {
+			res.status(500).send({
+				status: 'fail',
+				login: 'unknown',
+				details: 'Invalid username or password',
+			});
+		} else if (askedUser && askedUser.confirmationKey) {
+			res.status(500).send({
+				status: 'fail',
+				login: askedUser.username,
+				details: `${askedUser.username}'s account is not activated`,
+			});
+		} else {
+			const loginToken = {
+				token: crypto.tokenGenerator(),
+				creaDate: new Date().getTime() / 1000,
+			};
+			await users.update({ username }, { $set: { loginToken } });
+			res.status(200).send({
+				status: 'success',
+				login: username,
+				details: `${username} successfully connected`,
+				token: loginToken.token,
+			});
+		}
+	});
 };
 
 const logout = (req, res) => {
