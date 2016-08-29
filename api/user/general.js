@@ -34,7 +34,7 @@ const getSingular = (req, res) => {
 };
 
 //		Popularity
-//		age
+//		age 
 
 const getFastDetails = (req, res) => {
 	const { error } = Joi.validate(req.query, userSchema.username);
