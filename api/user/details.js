@@ -30,17 +30,9 @@ const addDetails = async (req, res) => {
 				]);
 			users.update({ username }, { $set: pushableDetails });
 			tagController.add(userTags, db);
-			res.status(200).send({
-				status: 'success',
-				login: username,
-				details: `about ${username} have been successfully added !`,
-			});
+			res.status(200).send(`details about ${username} have been successfully added !`);
 		} else {
-			res.status(500).send({
-				status: 'fail',
-				login: 'unknown',
-				details: `${username} does not exist or password does not match`,
-			});
+			res.status(500).send(`${username} does not exist or password does not match`);
 		}
 	});
 	return (true);
@@ -55,7 +47,6 @@ const updateInterest = async (req, res) => {
 		const users = db.collection('users');
 		const { username } = req.body;
 		const verifiedUsername = await users.findOne({ username, confirmationKey: { $exists: false } });
-		const errorOBJ = { status: 'fail', login: log.username, token: log.loginToken.token };
 		if (verifiedUsername && verifiedUsername.username !== log.username) {
 			const alreadyInterested = await users.findOne({
 				username: log.username,
@@ -67,35 +58,17 @@ const updateInterest = async (req, res) => {
 						$pull: { interestedIn: log.username },
 				});
 				await users.update({ username: log.username }, { $pull: { interestedBy: username } });
-				res.status(200).send({
-					status: 'success',
-					login: username,
-					token: log.loginToken.token,
-					details: `${log.username}'s interest to ${username} successfully removed`,
-				});
+				res.status(200).send(`${log.username}'s interest to ${username} successfully removed`);
 			} else {
 				users.update({ username }, {
 					$inc: { interestCounter: 1 },
 					$push: { interestedIn: log.username },
 				});
 				await users.update({ username: log.username }, { $push: { interestedBy: username } });
-				res.status(200).send({
-					...errorOBJ,
-					status: 'sucess',
-					details: `${log.username}'s interest to ${username} successfully added`,
-				});
+				res.status(200).send(`${log.username}'s interest to ${username} successfully added`);
 			}
-		} else if (verifiedUsername) {
-			res.status(500).send({
-				...errorOBJ,
-				details: 'interest to himself impossible',
-			});
-		} else {
-			res.status(500).send({
-				...errorOBJ,
-				details: `${username} does not exist`,
-			});
-		}
+		} else if (verifiedUsername) res.status(500).send('interest to himself impossible');
+		else res.status(500).send(`${username} does not exist`);
 	});
 	return (true);
 };

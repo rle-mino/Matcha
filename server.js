@@ -14,8 +14,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 //		USER
-app.get('/api/user/get/singular', generalController.getSingular);
-app.get('/api/user/get/singular_fast_details', generalController.getFastDetails);
+app.get('/api/user/get/singular/all', generalController.getSingular);
+app.get('/api/user/get/singular/fast', generalController.getFastDetails);
 app.put('/api/user/update/forgot_password', passwordController.forgot);
 app.put('/api/user/update/reset_password', passwordController.resetWithKey);
 app.put('/api/user/add/details', detailsController.addDetails);
