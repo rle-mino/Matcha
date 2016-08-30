@@ -17,20 +17,23 @@ const checkToken = async (req, db) => {
 	if (!loggedUser) return (null);
 	const actualDate = new Date().getTime() / 1000;
 	const lifeTime = actualDate - loggedUser.loginToken.creaDate;
-	const token = crypto.tokenGenerator();
-	const newLoginToken = { token, creaDate: actualDate };
-	// IF IT'S MORE THAN 10SEC AND LESS THAN 2 WEEKS
-	if (lifeTime > 10 && lifeTime < 1209600) {
-		await users.update({ username: loggedUser.username },
-		{
-			$set: { loginToken: newLoginToken },
-		});
-		return ({
-			...loggedUser,
-			loginToken: { token },
-		});
-	// IF IT'S MORE THAN 2 WEEKS
-	} else if (lifeTime > 1209600) {
+/*
+****	const token = crypto.tokenGenerator();
+****	const newLoginToken = { token, creaDate: actualDate };
+****	//IF IT'S MORE THAN 10SEC AND LESS THAN 2 WEEKS
+****	if (lifeTime > 10 && lifeTime < 1209600) {
+****		await users.update({ username: loggedUser.username },
+****		{
+****			$set: { loginToken: newLoginToken },
+****		});
+****		return ({
+****			...loggedUser,
+****			loginToken: { token },
+****		});
+****	// IF IT'S MORE THAN 2 WEEKS
+****	} else
+*/
+	if (lifeTime > 1209600) {
 		await users.update({ username: loggedUser.username }, { $unset: { loginToken: '' } });
 	// IF IT'S LESS THAN 10S
 	} else if (lifeTime <= 10) {
