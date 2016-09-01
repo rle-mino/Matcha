@@ -18,7 +18,6 @@ const details = Joi.object().keys({
 	bio: Joi.string().min(80),
 	tags: Joi.array().min(3),
 	location: Joi.string().alphanum(),
-	image: Joi.string().alphanum().regex(/^data:image\/(jpeg|png);base64,/),
 });
 
 const changePassword = Joi.object().keys({
@@ -43,7 +42,6 @@ const modif = Joi.object().keys({
 	bio: Joi.string().min(80),
 	tags: Joi.array().min(3),
 	location: Joi.string().alphanum(),
-	image: Joi.string().alphanum().regex(/^data:image\/(jpeg|png);base64,/),
 });
 
 const search = Joi.object().keys({
@@ -66,7 +64,7 @@ const login = Joi.object().keys({
 	password: Joi.string().regex(/(?=.*\w)(?=.*\d)(?=.*[A-Z]).{8}/).required(),
 });
 
-const removeImage = Joi.object().keys({
+const imageID = Joi.object().keys({
 	imgID: Joi.number().required(),
 });
 
@@ -80,5 +78,5 @@ export {
 	forgot,
 	resetWithKey,
 	login,
-	removeImage,
+	imageID,
 };

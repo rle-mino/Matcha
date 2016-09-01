@@ -21,11 +21,13 @@ const getSingular = (req, res) => {
 		if (askedUser) {
 			const { birthdate, visit, interestCounter, interestedBy } = askedUser || '';
 			if (askedUser.username !== log.username) {
-				await users.update({ username },
-				{
-					$inc: { visit: 1 },
-					$push: { visiter: log.username },
-				});
+				const alreadyVisited = _.find(askedUser.visiter, (visiter) => visiter === log.username);
+				if (!alreadyVisited) {
+					await users.update({ username }, {
+						$inc: { visit: 1 },
+						$push: { visiter: log.username },
+					});
+				}
 			}
 			const age = new Date().getFullYear() - new Date(birthdate).getFullYear();
 			const popularity = tools.getPopularity(visit, interestCounter);

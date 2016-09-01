@@ -18,14 +18,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //		USER
 app.get('/api/user/get/singular/all', generalController.getSingular);
 app.get('/api/user/get/singular/fast', generalController.getFastDetails);
+// account
 app.put('/api/user/update/forgot_password', passwordController.forgot);
 app.put('/api/user/update/reset_password', passwordController.resetWithKey);
 app.put('/api/user/add/details', detailsController.addDetails);
 app.put('/api/user/update/password', passwordController.changePassword);
 app.put('/api/user/update/interest', detailsController.updateInterest);
 app.post('/api/user/add/register', register);
+// log
 app.put('/api/user/auth/login', authController.login);
 app.put('/api/user/auth/logout', authController.logout);
+//	image
 app.post('/api/user/add_image', upload.single('image'), imageController.add);
 app.put('/api/user/remove_image', imageController.remove);
 app.post('/api/user/replace_image', upload.single('image'), imageController.replace);
