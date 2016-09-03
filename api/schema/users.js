@@ -71,6 +71,11 @@ const removeAccount = Joi.object().keys({
 	deleteKey: Joi.string().required(),
 });
 
+const mailConf = Joi.object().keys({
+	username: Joi.string().alphanum().min(3).max(30).required(),
+	newMailKey: Joi.string().required(),
+});
+
 export {
 	register,
 	details,
@@ -83,4 +88,5 @@ export {
 	login,
 	imageID,
 	removeAccount,
+	mailConf,
 };
