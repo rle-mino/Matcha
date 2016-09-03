@@ -30,17 +30,14 @@ const username = Joi.object().keys({
 	username: Joi.string().alphanum().min(3).max(30).required(),
 });
 
-const modif = Joi.object().keys({
-	username: Joi.string().alphanum().min(3).max(30),
+const updateProfil = Joi.object().keys({
 	firstname: Joi.string().alphanum().min(2).max(30),
 	lastname: Joi.string().alphanum().min(2).max(30),
-	password: Joi.string().regex(/(?=.*\w)(?=.*\d)(?=.*[A-Z]).{8}/).required(),
-	mail: Joi.string().email(),
 	birthdate: Joi.date().max(moment().subtract(18, 'y').format('MM-DD-YYYY')),
 	sex: Joi.string().regex(/^(male|female|other)$/),
 	orientation: Joi.string().regex(/^(gay|bisexual|straight)$/),
 	bio: Joi.string().min(80),
-	tags: Joi.array().min(3),
+	tags: Joi.array().items(Joi.string().alphanum()).min(3),
 	location: Joi.string().alphanum(),
 });
 
@@ -68,10 +65,16 @@ const imageID = Joi.object().keys({
 	imgID: Joi.number().required(),
 });
 
+const removeAccount = Joi.object().keys({
+	username: Joi.string().alphanum().min(3).max(30).required(),
+	password: Joi.string().regex(/(?=.*\w)(?=.*\d)(?=.*[A-Z]).{8}/).required(),
+	deleteKey: Joi.string().required(),
+});
+
 export {
 	register,
 	details,
-	modif,
+	updateProfil,
 	username,
 	search,
 	changePassword,
@@ -79,4 +82,5 @@ export {
 	resetWithKey,
 	login,
 	imageID,
+	removeAccount,
 };

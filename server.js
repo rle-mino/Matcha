@@ -25,12 +25,16 @@ app.put('/api/user/add/details', detailsController.addDetails);
 app.put('/api/user/update/password', passwordController.changePassword);
 app.put('/api/user/update/interest', detailsController.updateInterest);
 app.post('/api/user/add/register', register);
+app.put('/api/user/update/profile', generalController.updateProfil);
+// delete
+app.put('/api/user/delete/send_delete', generalController.deleteProfile1o2);
+app.delete('/api/user/delete', generalController.deleteProfile2o2);
 // log
 app.put('/api/user/auth/login', authController.login);
 app.put('/api/user/auth/logout', authController.logout);
 //	image
 app.post('/api/user/add_image', upload.single('image'), imageController.add);
-app.put('/api/user/remove_image', imageController.remove);
+app.delete('/api/user/remove_image', imageController.remove);
 app.post('/api/user/replace_image', upload.single('image'), imageController.replace);
 
 //		TAG

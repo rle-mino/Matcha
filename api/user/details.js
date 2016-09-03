@@ -16,12 +16,10 @@ const addDetails = async (req, res) => {
 			username,
 			password: crypto.encrypt(password),
 		});
-		const userTags = req.body.tags.map((atag) => atag.toLowerCase());
 		if (askedUser) {
 			const orientation = req.body.orientation || 'bisexual';
 			const detailsAndRegisterData = {
 				...req.body,
-				tags: userTags,
 				orientation,
 			};
 			const pushableDetails = _.omit(detailsAndRegisterData, [
@@ -29,7 +27,7 @@ const addDetails = async (req, res) => {
 				'username',
 				]);
 			users.update({ username }, { $set: pushableDetails });
-			tagController.add(userTags, db);
+			tagController.add(req.body.tags, db);
 			res.status(200).send(`details about ${username} have been successfully added !`);
 		} else {
 			res.status(500).send(`${username} does not exist or password does not match`);
