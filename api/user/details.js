@@ -28,10 +28,9 @@ const addDetails = async (req, res) => {
 				]);
 			users.update({ username }, { $set: pushableDetails });
 			tagController.add(req.body.tags, db);
-			res.status(200).send(`details about ${username} have been successfully added !`);
-		} else {
-			res.status(500).send(`${username} does not exist or password does not match`);
+			return (res.status(200).send(`details about ${username} have been successfully added !`));
 		}
+		return (res.status(500).send(`${username} does not exist or password does not match`));
 	});
 	return (true);
 };
