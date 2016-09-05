@@ -9,6 +9,7 @@ import * as imageController from './api/user/image';
 import * as updateMailController from './api/user/updateMail';
 import * as authController from './api/user/auth';
 import * as deleteController from './api/user/delete';
+import * as reportController from './api/user/report';
 import * as tagController from './api/tag';
 
 const app = express();
@@ -42,6 +43,9 @@ app.put('/api/user/auth/logout', authController.logout);
 app.post('/api/user/add_image', upload.single('image'), imageController.add);
 app.delete('/api/user/remove_image', imageController.remove);
 app.post('/api/user/replace_image', upload.single('image'), imageController.replace);
+// report
+app.put('/api/user/report/fake', reportController.asFake);
+app.put('/api/user/report/block', reportController.asBlocked);
 
 //		TAG
 app.get('/api/tag/get/all', tagController.getAll);

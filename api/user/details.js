@@ -42,9 +42,17 @@ const updateInterest = async (req, res) => {
 	mongoConnectAsync(res, async (db) => {
 		const log = await authController.checkToken(req, db);
 		if (!log) await res.status(401).send(authController.errorMessage);
+		if (!log.images.length) {
+			return (res.status(500).send(
+			`${log.username} needs to upload at least one image before showing his interest to someone`));
+		}
 		const users = db.collection('users');
 		const { username } = req.body;
 		const verifiedUsername = await users.findOne({ username, confirmationKey: { $exists: false } });
+		if (verifiedUsername && verifiedUsername === log.username) {
+			return (res.status(500).send('interest to himself impossible'));
+		}
+		if (!verifiedUsername) return (res.status(500).send(`${username} does not exist`));
 		if (verifiedUsername && verifiedUsername.username !== log.username) {
 			const alreadyInterested = await users.findOne({
 				username: log.username,
@@ -56,19 +64,19 @@ const updateInterest = async (req, res) => {
 						$pull: { interestedIn: log.username },
 				});
 				await users.update({ username: log.username }, { $pull: { interestedBy: username } });
-				res.status(200).send(`${log.username}'s interest to ${username} successfully removed`);
-			} else {
-				users.update({ username }, {
-					$inc: { interestCounter: 1 },
-					$push: { interestedIn: log.username },
-				});
-				await users.update({ username: log.username }, { $push: { interestedBy: username } });
-				res.status(200).send(`${log.username}'s interest to ${username} successfully added`);
+				return (res.status(200).send(
+					`${log.username}'s interest to ${username} successfully removed`));
 			}
-		} else if (verifiedUsername) res.status(500).send('interest to himself impossible');
-		else res.status(500).send(`${username} does not exist`);
+			users.update({ username }, {
+				$inc: { interestCounter: 1 },
+				$push: { interestedIn: log.username },
+			});
+			await users.update({ username: log.username }, { $push: { interestedBy: username } });
+			return (res.status(200).send(`${log.username}'s interest to ${username} successfully added`));
+		}
+		return (false);
 	});
-	return (true);
+	return (false);
 };
 
 export { addDetails, updateInterest };

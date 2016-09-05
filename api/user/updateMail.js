@@ -11,6 +11,7 @@ const updateMail1o2 = (req, res) => {
 	mongoConnectAsync(res, async (db) => {
 		const log = await authController.checkToken(req, db);
 		if (!log) return (res.status(401).send(authController.errorMessage));
+		res.set('logToken', log.loginToken.token);
 		const token = crypto.tokenGenerator();
 		const creaDate = new Date().getTime() / 1000;
 		const users = db.collection('users');

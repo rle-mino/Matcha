@@ -19,43 +19,47 @@ const getSingular = (req, res) => {
 			password: 0,
 			loginToken: 0,
 		});
-		if (askedUser) {
-			const { birthdate, visit, interestCounter, interestedBy } = askedUser || '';
-			if (askedUser.username !== log.username) {
-				const alreadyVisited = _.find(askedUser.visiter, (visiter) => visiter === log.username);
-				if (!alreadyVisited) {
-					await users.update({ username }, {
-						$inc: { visit: 1 },
-						$push: { visiter: log.username },
-					});
-				}
-			}
-			const age = new Date().getFullYear() - new Date(birthdate).getFullYear();
-			const popularity = tools.getPopularity(visit, interestCounter);
-			const interToMe = _.find(interestedBy,
-							(likedUser) => likedUser === log.username);
-			const allInfo = {
-				...askedUser,
-				popularity,
-				interToReq: interToMe || false,
-				age,
-			};
-			if (askedUser.username !== log.username) {
-				const sendableInfo = _.omit(allInfo, [
-					'interestedBy',
-					'birthdate',
-					'visit',
-					'interestCounter',
-					'mail',
-					'visiter',
-					'_id',
-					'interestedIn',
-				]);
-				return (res.send(sendableInfo));
-			}
-			return (res.status(200).send(allInfo));
+		if (!askedUser) return (res.status(500).send(`Error - ${username} not found`));
+		if ((askedUser.blockedBy && askedUser.blockedBy.indexOf(log.username) !== -1) ||
+				(log.blockedBy && log.blockedBy.indexOf(askedUser.username) !== -1)) {
+			return (res.status(500).send('user\'s blocked'));
 		}
-		return (res.status(500).send(`Error - ${username} not found`));
+		const { birthdate, visit, interestCounter, interestedBy } = askedUser || '';
+		if (askedUser.username !== log.username) {
+			const alreadyVisited = _.find(askedUser.visiter, (visiter) => visiter === log.username);
+			if (!alreadyVisited) {
+				await users.update({ username }, {
+					$inc: { visit: 1 },
+					$push: { visiter: log.username },
+				});
+			}
+		}
+		const age = new Date().getFullYear() - new Date(birthdate).getFullYear();
+		const popularity = tools.getPopularity(visit, interestCounter);
+		const interToMe = _.find(interestedBy,
+						(likedUser) => likedUser === log.username);
+		const allInfo = {
+			...askedUser,
+			popularity,
+			interToReq: interToMe || false,
+			age,
+		};
+		if (askedUser.username !== log.username) {
+			const sendableInfo = _.omit(allInfo, [
+				'_id',
+				'mail',
+				'birthdate',
+				'visit',
+				'visiter',
+				'interestedBy',
+				'interestCounter',
+				'interestedIn',
+				'blockedBy',
+				'reporterFake',
+			]);
+			return (res.send(sendableInfo));
+		}
+		return (res.status(200).send(allInfo));
 	});
 	return (false);
 };
@@ -79,8 +83,13 @@ const getFastDetails = (req, res) => {
 			interestCounter: 1,
 			birthdate: 1,
 			interestedBy: 1,
+			blockedBy: 1,
 		});
 		if (askedUser) {
+			if ((askedUser.blockedBy && askedUser.blockedBy.indexOf(log.username) !== -1) ||
+				(log.blockedBy && log.blockedBy.indexOf(askedUser.username) !== -1)) {
+				return (res.status(500).send('user\'s blocked'));
+			}
 			const { birthdate, interestCounter, visit, interestedBy } = askedUser || '';
 			const age = new Date().getFullYear() - new Date(birthdate).getFullYear();
 			const popularity = tools.getPopularity(visit, interestCounter);
@@ -91,6 +100,7 @@ const getFastDetails = (req, res) => {
 				'birthdate',
 				'visit',
 				'interestCounter',
+				'blockedBy',
 			]);
 			return (res.status(200).send({ ...fastDetails,
 								interToReq: interToMe || false,
