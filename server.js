@@ -7,6 +7,7 @@ import * as detailsController from './api/user/details';
 import * as generalController from './api/user/general';
 import * as imageController from './api/user/image';
 import * as updateMailController from './api/user/updateMail';
+import * as interestController from './api/user/interest';
 import * as authController from './api/user/auth';
 import * as deleteController from './api/user/delete';
 import * as reportController from './api/user/report';
@@ -27,9 +28,11 @@ app.put('/api/user/update/reset_password', passwordController.resetWithKey);
 app.put('/api/user/update/password', passwordController.changePassword);
 // add/update global info
 app.put('/api/user/add/details', detailsController.addDetails);
-app.put('/api/user/update/interest', detailsController.updateInterest);
 app.post('/api/user/add/register', register);
 app.put('/api/user/update/profile', generalController.updateProfil);
+// interest
+app.put('/api/user/update/interest', interestController.updateInterest);
+app.get('/api/user/get/self_interest', interestController.selfInterest);
 // update mail
 app.put('/api/user/update/mail1o2', updateMailController.updateMail1o2);
 app.put('/api/user/update/mail2o2', updateMailController.updateMail2o2);

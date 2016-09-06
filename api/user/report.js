@@ -4,6 +4,16 @@ import mailer from '../mail';
 import * as userSchema from '../schema/users';
 import * as authController from './auth';
 
+const areBlocked = (userA, userB) => {
+	if (userA.blockedBy && userA.blockedBy.indexOf(userB.username) !== -1) {
+		return (true);
+	}
+	if (userB.blockedBy && userB.blockedBy.indexOf(userA.username) !== -1) {
+		return (true);
+	}
+	return (false);
+};
+
 const blockUser = (users, toBlock, by) => {
 	users.update({ username: toBlock }, {
 		$pull: {
@@ -62,4 +72,4 @@ const asBlocked = (req, res) => {
 	return (false);
 };
 
-export { asFake, asBlocked };
+export { asFake, asBlocked, areBlocked };
