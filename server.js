@@ -1,6 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import multer from 'multer';
+import cors from 'cors';
 import register from './api/user/register';
 import * as passwordController from './api/user/password';
 import * as detailsController from './api/user/details';
@@ -18,6 +19,7 @@ const upload = multer({ dest: `${__dirname}/public` });
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors());
 
 //		USER
 app.get('/api/user/get/singular/all', generalController.getSingular);

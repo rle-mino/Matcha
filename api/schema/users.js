@@ -58,7 +58,7 @@ const resetWithKey = Joi.object().keys({
 
 const login = Joi.object().keys({
 	username: Joi.string().alphanum().min(3).max(30).required(),
-	password: Joi.string().regex(/(?=.*\w)(?=.*\d)(?=.*[A-Z]).{8}/).required(),
+	password: Joi.string().required(),
 });
 
 const imageID = Joi.object().keys({

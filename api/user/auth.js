@@ -50,8 +50,14 @@ const checkToken = async (req, db) => {
 };
 
 const login = async (req, res) => {
-	const { error } = Joi.validate(req.body, userSchema.login, { abortEarly: false });
-	if (error) await res.status(400).send(error.details);
+	let error = 0;
+	if (!req.body.username) error = error | 1;
+	if (!req.body.password) error = error | 2;
+	if (error & 1 || error & 2) return (res.send({
+		status: false,
+		details: 'invalid request',
+		require: [(error & 1 ? 'username' : null), (error & 2 ? 'password' : null)],
+	}));
 	mongoConnectAsync(res, async (db) => {
 		const { username, password } = req.body;
 		const users = db.collection('users');
@@ -60,19 +66,28 @@ const login = async (req, res) => {
 			password: crypto.encrypt(password),
 		});
 		if (!askedUser) {
-			res.status(500).send('Invalid username or password');
+			return (res.send({
+				status: false,
+				details: 'Username or password invalid',
+			}));
 		} else if (askedUser && askedUser.confirmationKey) {
-			res.status(500).send(`${askedUser.username}'s account is not activated`);
-		} else {
-			const loginToken = {
-				token: crypto.tokenGenerator(),
-				creaDate: new Date().getTime() / 1000,
-			};
-			await users.update({ username }, { $set: { loginToken } });
-			res.set('logToken', loginToken.token);
-			res.status(200).send(`${username} successfully connected`);
+			return (res.send({
+				status: false,
+				details: `${askedUser.username}'s account is not activated`,
+			}));
 		}
+		const loginToken = {
+			token: crypto.tokenGenerator(),
+			creaDate: new Date().getTime() / 1000,
+		};
+		await users.update({ username }, { $set: { loginToken } });
+		res.set('logToken', loginToken.token);
+		return (res.send({
+			details: `${username} successfully connected`,
+			status: true,
+		}));
 	});
+	return (false);
 };
 
 const logout = (req, res) => {
