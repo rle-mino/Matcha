@@ -21,4 +21,6 @@ const tokenGenerator = () => Math.random().toString(36).substr(2)
 							+
 							Math.random().toString(36).substr(2);
 
-export { encrypt, decrypt, tokenGenerator };
+const miniTokenGenerator = () => Math.random().toString(36).substr(2, 5).toUpperCase();
+
+export { encrypt, decrypt, tokenGenerator, miniTokenGenerator };

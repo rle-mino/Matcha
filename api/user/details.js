@@ -7,7 +7,13 @@ import * as crypto from '../crypto';
 
 const addDetails = async (req, res) => {
 	const { error } = await Joi.validate(req.body, userSchema.details, { abortEarly: false });
-	if (error) return (res.status(400).send(error.details));
+	if (error) {
+		return (res.send({
+			status: false,
+			details: 'invalid request',
+			error: error.details,
+		}));
+	}
 	mongoConnectAsync(res, async (db) => {
 		const { username, password } = req.body;
 		const users = db.collection('users');

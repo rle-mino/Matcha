@@ -24,7 +24,7 @@ const register = async (req, res) => {
 				error: `${already.username === username ? username : mail} already exists`,
 			}));
 		}
-		const token = crypto.tokenGenerator();
+		const token = crypto.miniTokenGenerator();
 		users.insert({
 			...req.body,
 			password: crypto.encrypt(password),
@@ -34,9 +34,8 @@ const register = async (req, res) => {
 			interestedBy: [],
 			interestedIn: [],
 		});
-		const url = `http://localhost:8000/complete_registration?username=${encodeURI(username)}&resetkey=${encodeURI(token)}`;
 		await mailer(mail,
-					`Use this link to complete your registration ${url}`,
+					`Use this code to complete your registration ${token}`,
 					'Complete your registration');
 		return (res.send({
 			status: true,
@@ -46,4 +45,32 @@ const register = async (req, res) => {
 	return (false);
 };
 
-export default register;
+const confirmMail = async (req, res) => {
+	const { error } = await Joi.validate(req.body, userSchema.mailConf, { abortEarly: false });
+	if (error) {
+		return (res.send({
+			status: false,
+			details: 'invalid request',
+			error: error.details,
+		}));
+	}
+	mongoConnectAsync(res, async (db) => {
+		const { username, newMailKey } = req.body;
+		const users = db.collection('users');
+		const askedUser = await users.findOne({ username, confirmationKey: newMailKey });
+		if (!askedUser) {
+			return (res.send({
+				status: false,
+				details: 'impossible to activate this account with this code',
+			}));
+		}
+		users.update({ username }, { $unset: { confirmationKey: '' } });
+		return (res.send({
+			status: true,
+			details: 'account successfully activated',
+		}));
+	});
+	return (false);
+};
+
+export { register, confirmMail };

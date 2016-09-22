@@ -11,8 +11,6 @@ const register = Joi.object().keys({
 });
 
 const details = Joi.object().keys({
-	username: Joi.string().alphanum().min(3).max(30).required(),
-	password: Joi.string().regex(/(?=.*\w)(?=.*\d)(?=.*[A-Z]).{8}/).required(),
 	sex: Joi.string().regex(/^(male|female|other)$/),
 	orientation: Joi.string().regex(/^(gay|bisexual|straight)$/),
 	bio: Joi.string().min(80),

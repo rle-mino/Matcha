@@ -2,7 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import multer from 'multer';
 import cors from 'cors';
-import register from './api/user/register';
+import * as register from './api/user/register';
 import * as passwordController from './api/user/password';
 import * as detailsController from './api/user/details';
 import * as generalController from './api/user/general';
@@ -13,6 +13,7 @@ import * as authController from './api/user/auth';
 import * as deleteController from './api/user/delete';
 import * as reportController from './api/user/report';
 import * as tagController from './api/tag';
+import * as crypto from './api/crypto';
 
 const app = express();
 const upload = multer({ dest: `${__dirname}/public` });
@@ -30,7 +31,8 @@ app.put('/api/user/update/reset_password', passwordController.resetWithKey);
 app.put('/api/user/update/password', passwordController.changePassword);
 // add/update global info
 app.put('/api/user/add/details', detailsController.addDetails);
-app.post('/api/user/add/register', register);
+app.post('/api/user/add/register', register.register);
+app.put('/api/user/update/confirm_mail', register.confirmMail);
 app.put('/api/user/update/profile', generalController.updateProfil);
 // interest
 app.put('/api/user/update/interest', interestController.updateInterest);
@@ -54,5 +56,7 @@ app.put('/api/user/report/block', reportController.asBlocked);
 
 //		TAG
 app.get('/api/tag/get/all', tagController.getAll);
+
+app.get('/api/test', crypto.miniTokenGenerator);
 
 app.listen(8080);
