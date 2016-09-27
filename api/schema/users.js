@@ -11,7 +11,7 @@ const register = Joi.object().keys({
 });
 
 const details = Joi.object().keys({
-	sex: Joi.string().regex(/^(male|female|other)$/),
+	gender: Joi.string().regex(/^(male|female|other)$/),
 	orientation: Joi.string().regex(/^(gay|bisexual|straight)$/),
 	bio: Joi.string().min(80),
 	tags: Joi.array().min(3),
