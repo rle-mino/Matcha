@@ -12,8 +12,8 @@ import * as interestController from './api/user/interest';
 import * as authController from './api/user/auth';
 import * as deleteController from './api/user/delete';
 import * as reportController from './api/user/report';
+import * as parserController from './api/parserController';
 import * as tagController from './api/tag';
-import * as crypto from './api/crypto';
 
 const app = express();
 const upload = multer({ dest: `${__dirname}/public` });
@@ -57,6 +57,6 @@ app.put('/api/user/report/block', reportController.asBlocked);
 //		TAG
 app.get('/api/tag/get/all', tagController.getAll);
 
-app.get('/api/test', crypto.miniTokenGenerator);
+app.post('/api/test', parserController.test);
 
 app.listen(8080);

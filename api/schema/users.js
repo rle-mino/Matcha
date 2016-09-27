@@ -1,5 +1,5 @@
-import Joi from 'joi';
-import moment from 'moment';
+import Joi			from 'joi';
+import moment		from 'moment';
 
 const register = Joi.object().keys({
 	username: Joi.string().alphanum().min(3).max(30).required(),
@@ -50,7 +50,7 @@ const forgot = Joi.object().keys({
 
 const resetWithKey = Joi.object().keys({
 	username: Joi.string().alphanum().min(3).max(30).required(),
-	resetkey: Joi.number().required(),
+	resetKey: Joi.number().required(),
 	password: Joi.string().regex(/(?=.*\w)(?=.*\d)(?=.*[A-Z]).{8}/).required(),
 });
 
