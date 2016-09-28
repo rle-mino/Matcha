@@ -45,7 +45,7 @@ const loginChecker = async (data) => {
 	return (!error.length ? null : error);
 };
 
-const detailsChecker = async (data) => {
+const detailsChecker = (data) => {
 	const error = [];
 	let testVal = null;
 	testVal = parser.gender(data.gender, false);
@@ -70,12 +70,29 @@ const detailsChecker = async (data) => {
 	return (!error.length ? null : error);
 };
 
+const confirmMailChecker = (data) => {
+	const error = [];
+	let testVal = null;
+	testVal = parser.username(data.username, true);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.newMailKey(data.newMailKey, true);
+	if (testVal !== true) error.push(testVal);
+	_.forEach(data, (el, key) => {
+		if (key !== 'username' &&
+			key !== 'newMailKey') {
+				error.push({ path: key, error: 'unauthorized' });
+			}
+	});
+	return (!error.length ? null : error);
+};
+
 const test = async (req, res) => {
-	res.send(await detailsChecker(req.body));
+	res.send(await confirmMailChecker(req.body));
 };
 
 export {
 	test,
 	registerChecker,
 	loginChecker,
+	confirmMailChecker,
 };

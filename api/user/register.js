@@ -47,12 +47,12 @@ const register = async (req, res) => {
 };
 
 const confirmMail = async (req, res) => {
-	const { error } = await Joi.validate(req.body, userSchema.mailConf, { abortEarly: false });
+	const error = await parserController.confirmMailChecker(req.body);
 	if (error) {
 		return (res.send({
 			status: false,
 			details: 'invalid request',
-			error: error.details,
+			error,
 		}));
 	}
 	mongoConnectAsync(res, async (db) => {
