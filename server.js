@@ -31,8 +31,8 @@ app.put('/api/user/update/reset_password', passwordController.resetWithKey);
 app.put('/api/user/update/password', passwordController.changePassword);
 // add/update global info
 app.put('/api/user/add/details', detailsController.addDetails);
-app.post('/api/user/add/register', register.register);
-app.put('/api/user/update/confirm_mail', register.confirmMail);
+app.post('/api/user/register', register.register);
+app.put('/api/user/confirm_mail', register.confirmMail);
 app.put('/api/user/update/profile', generalController.updateProfil);
 // interest
 app.put('/api/user/update/interest', interestController.updateInterest);

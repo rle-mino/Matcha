@@ -1,7 +1,6 @@
-import Joi from 'joi';
 import mongoConnectAsync from '../mongo';
 import * as crypto from '../crypto';
-import * as userSchema from '../schema/users';
+import * as parserController from '../parserController';
 
 const errorMessage = {
 	status: 'fail',
@@ -50,14 +49,8 @@ const checkToken = async (req, db) => {
 };
 
 const login = async (req, res) => {
-	let error = 0;
-	if (!req.body.username) error = error | 1;
-	if (!req.body.password) error = error | 2;
-	if (error & 1 || error & 2) return (res.send({
-		status: false,
-		details: 'invalid request',
-		require: [(error & 1 ? 'username' : null), (error & 2 ? 'password' : null)],
-	}));
+	const error = await parserController.loginChecker(req.body);
+	if (error) return (res.send({ status: false, details: 'invalid request', error }));
 	mongoConnectAsync(res, async (db) => {
 		const { username, password } = req.body;
 		const users = db.collection('users');

@@ -1,9 +1,11 @@
 const username = (login, required) => {
 	const path = 'username';
 	if (!login && !!required) return ({ path, error: 'required' });
-	if (login.length < 3) return ({ path, error: 'too short' });
-	if (login.length > 30) return ({ path, error: 'too long' });
-	if (!login.match(/^[a-zA-Z0-9]+$/)) return ({ path, error: '' });
+	if (login.length < 3) return ({ path, error: '3 characters min' });
+	if (login.length > 30) return ({ path, error: '30 characters max' });
+	if (!login.match(/^[a-zA-Z0-9]+$/)) {
+		return ({ path, error: 'may only contain alphanumeric characters' });
+	}
 	return (true);
 };
 
@@ -37,7 +39,9 @@ const birthdate = (birth, required) => {
 	const path = 'birthdate';
 	if (!birth && !required) return (true);
 	if (!birth && !!required) return ({ path, error: 'required' });
-	if (!birth.match(/^(0?\d|[12]\d|3[01])-(0?\d|1[012])-((?:19|20)\d{2})$/)) return (false);
+	if (!birth.match(/^(0?\d|[12]\d|3[01])-(0?\d|1[012])-((?:19|20)\d{2})$/)) {
+		return ({ path, error: 'invalid entry' });
+	}
 	if (birth.length !== 10) return ({ path, error: 'invalid entry' });
 	const today = new Date();
 	const birthConv = new Date(birth);

@@ -1,16 +1,17 @@
-import Joi from 'joi';
-import * as userSchema from '../schema/users';
-import * as crypto from '../crypto';
-import mongoConnectAsync from '../mongo';
-import mailer from '../mail';
+import Joi						from 'joi';
+import mailer					from '../mail';
+import mongoConnectAsync		from '../mongo';
+import * as crypto				from '../crypto';
+import * as userSchema			from '../schema/users';
+import * as parserController	from '../parserController';
 
 const register = async (req, res) => {
-	const { error } = await Joi.validate(req.body, userSchema.register, { abortEarly: false });
+	const error = await parserController.registerChecker(req.body);
 	if (error) {
 		return (res.send({
 			status: false,
 			details: 'invalid request',
-			error: error.details,
+			error,
 		}));
 	}
 	mongoConnectAsync(res, async (db) => {
