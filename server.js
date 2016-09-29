@@ -26,11 +26,11 @@ app.use(cors());
 app.get('/api/user/get/singular/all', generalController.getSingular);
 app.get('/api/user/get/singular/fast', generalController.getFastDetails);
 // password
-app.put('/api/user/update/forgot_password', passwordController.forgot);
+app.put('/api/user/forgot_password', passwordController.forgot);
 app.put('/api/user/update/reset_password', passwordController.resetWithKey);
 app.put('/api/user/update/password', passwordController.changePassword);
 // add/update global info
-app.put('/api/user/add/details', detailsController.addDetails);
+app.put('/api/user/add_details', detailsController.addDetails);
 app.post('/api/user/register', register.register);
 app.put('/api/user/confirm_mail', register.confirmMail);
 app.put('/api/user/update/profile', generalController.updateProfil);
@@ -44,8 +44,8 @@ app.put('/api/user/update/mail2o2', updateMailController.updateMail2o2);
 app.put('/api/user/delete/send_delete', deleteController.deleteProfile1o2);
 app.delete('/api/user/delete', deleteController.deleteProfile2o2);
 // log
-app.put('/api/user/auth/login', authController.login);
-app.put('/api/user/auth/logout', authController.logout);
+app.put('/api/user/login', authController.login);
+app.put('/api/user/logout', authController.logout);
 //	image
 app.post('/api/user/add_image', upload.single('image'), imageController.add);
 app.delete('/api/user/remove_image', imageController.remove);

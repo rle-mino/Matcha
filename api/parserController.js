@@ -86,6 +86,19 @@ const confirmMailChecker = (data) => {
 	return (!error.length ? null : error);
 };
 
+const forgotPasswordChecker = (data) => {
+	const error = [];
+	let testVal = null;
+	testVal = parser.mail(data.mail, true);
+	if (testVal !== true) error.push(testVal);
+	_.forEach(data, (el, key) => {
+		if (key !== 'mail') {
+			error.push({ path: key, error: 'unauthorized' });
+		}
+	});
+	return (!error.length ? null : error);
+};
+
 const test = async (req, res) => {
 	res.send(await confirmMailChecker(req.body));
 };
@@ -94,5 +107,7 @@ export {
 	test,
 	registerChecker,
 	loginChecker,
+	detailsChecker,
 	confirmMailChecker,
+	forgotPasswordChecker,
 };

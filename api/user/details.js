@@ -1,41 +1,32 @@
-import Joi from 'joi';
-import _ from 'lodash';
-import mongoConnectAsync from '../mongo';
-import * as tagController from '../tag';
-import * as userSchema from '../schema/users';
-import * as crypto from '../crypto';
+import mongoConnectAsync		from '../mongo';
+import * as tagController		from '../tag';
+import * as parserController	from '../parserController';
+import * as authController		from './auth';
 
 const addDetails = async (req, res) => {
-	const { error } = await Joi.validate(req.body, userSchema.details, { abortEarly: false });
+	const error = await parserController.detailsChecker(req.body);
 	if (error) {
 		return (res.send({
 			status: false,
 			details: 'invalid request',
-			error: error.details,
+			error,
 		}));
 	}
 	mongoConnectAsync(res, async (db) => {
-		const { username, password } = req.body;
+		const log = await authController.checkToken(req, db);
+		if (!log) return (res.send(authController.errorMessage));
 		const users = db.collection('users');
-		const askedUser = await users.findOne({
-			username,
-			password: crypto.encrypt(password),
-		});
-		if (askedUser) {
-			const orientation = req.body.orientation || 'bisexual';
-			const detailsAndRegisterData = {
-				...req.body,
-				orientation,
-			};
-			const pushableDetails = _.omit(detailsAndRegisterData, [
-				'password',
-				'username',
-				]);
-			users.update({ username }, { $set: pushableDetails });
-			tagController.add(req.body.tags, db);
-			return (res.status(200).send(`details about ${username} have been successfully added !`));
-		}
-		return (res.status(500).send(`${username} does not exist or password does not match`));
+		const orientation = req.body.orientation || 'bisexual';
+		const detailsAndRegisterData = {
+			...req.body,
+			orientation,
+		};
+		users.update({ username: log.username }, { $set: detailsAndRegisterData });
+		tagController.add(req.body.tags, db);
+		return (res.status(200).send({
+			status: true,
+			details: `details about ${log.username} have been successfully added !`,
+		}));
 	});
 	return (true);
 };

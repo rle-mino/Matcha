@@ -48,6 +48,11 @@ const checkToken = async (req, db) => {
 	return (loggedUser);
 };
 
+const setHeader = (res, token) => {
+	res.set('Access-Control-Expose-Headers', 'logToken');
+	res.set('logToken', token);
+};
+
 const login = async (req, res) => {
 	const error = await parserController.loginChecker(req.body);
 	if (error) return (res.send({ status: false, details: 'invalid request', error }));
@@ -73,8 +78,8 @@ const login = async (req, res) => {
 			token: crypto.tokenGenerator(),
 			creaDate: new Date().getTime() / 1000,
 		};
+		setHeader(res, loginToken.token);
 		await users.update({ username }, { $set: { loginToken } });
-		res.set('logToken', loginToken.token);
 		return (res.send({
 			details: `${username} successfully connected`,
 			status: true,
@@ -101,4 +106,4 @@ const logout = (req, res) => {
 	}
 };
 
-export { login, logout, checkToken, errorMessage };
+export { login, logout, checkToken, errorMessage, setHeader };
