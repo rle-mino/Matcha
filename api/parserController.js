@@ -99,15 +99,30 @@ const forgotPasswordChecker = (data) => {
 	return (!error.length ? null : error);
 };
 
-const test = async (req, res) => {
-	res.send(await confirmMailChecker(req.body));
+const resetWithKeyChecker = (data) => {
+	const error = [];
+	let testVal = null;
+	testVal = parser.username(data.username, true);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.password(data.password, true);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.resetKey(data.resetKey, true);
+	if (testVal !== true) error.push(testVal);
+	_.forEach(data, (el, key) => {
+		if (key !== 'username' &&
+			key !== 'password' &&
+			key !== 'resetKey') {
+				error.push({ path: key, error: 'unauthorized' });
+			}
+	});
+	return (!error.length ? null : error);
 };
 
 export {
-	test,
 	registerChecker,
 	loginChecker,
 	detailsChecker,
 	confirmMailChecker,
 	forgotPasswordChecker,
+	resetWithKeyChecker,
 };

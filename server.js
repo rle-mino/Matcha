@@ -12,7 +12,6 @@ import * as interestController from './api/user/interest';
 import * as authController from './api/user/auth';
 import * as deleteController from './api/user/delete';
 import * as reportController from './api/user/report';
-import * as parserController from './api/parserController';
 import * as tagController from './api/tag';
 
 const app = express();
@@ -27,7 +26,7 @@ app.get('/api/user/get/singular/all', generalController.getSingular);
 app.get('/api/user/get/singular/fast', generalController.getFastDetails);
 // password
 app.put('/api/user/forgot_password', passwordController.forgot);
-app.put('/api/user/update/reset_password', passwordController.resetWithKey);
+app.put('/api/user/reset_password', passwordController.resetWithKey);
 app.put('/api/user/update/password', passwordController.changePassword);
 // add/update global info
 app.put('/api/user/add_details', detailsController.addDetails);
@@ -56,7 +55,5 @@ app.put('/api/user/report/block', reportController.asBlocked);
 
 //		TAG
 app.get('/api/tag/get/all', tagController.getAll);
-
-app.post('/api/test', parserController.test);
 
 app.listen(8080);
