@@ -118,6 +118,17 @@ const resetWithKeyChecker = (data) => {
 	return (!error.length ? null : error);
 };
 
+const removeIMGChecker = (data) => {
+	const error = [];
+	let testVal = null;
+	testVal = parser.imgID(data.imgID, true);
+	if (testVal !== true) error.push(testVal);
+	_.forEach(data, (el, key) => {
+		if (key !== 'imgID') error.push({ path: key, error: 'unauthorized' });
+	});
+	return (!error.length ? null : error);
+};
+
 export {
 	registerChecker,
 	loginChecker,
@@ -125,4 +136,5 @@ export {
 	confirmMailChecker,
 	forgotPasswordChecker,
 	resetWithKeyChecker,
+	removeIMGChecker,
 };

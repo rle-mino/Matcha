@@ -20,6 +20,7 @@ const upload = multer({ dest: `${__dirname}/public` });
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
+app.use('/api/user/get_img_src', express.static('public'));
 
 //		USER
 app.get('/api/user/get/singular/all', generalController.getSingular);
@@ -47,8 +48,10 @@ app.put('/api/user/login', authController.login);
 app.put('/api/user/logout', authController.logout);
 //	image
 app.post('/api/user/add_image', upload.single('image'), imageController.add);
-app.delete('/api/user/remove_image', imageController.remove);
+app.put('/api/user/remove_image', imageController.remove);
 app.post('/api/user/replace_image', upload.single('image'), imageController.replace);
+app.get('/api/user/get_images', imageController.getAll);
+// app.get('/api/user/get_img_src/:imgname', imageController.getSRC);
 // report
 app.put('/api/user/report/fake', reportController.asFake);
 app.put('/api/user/report/block', reportController.asBlocked);

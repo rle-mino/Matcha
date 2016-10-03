@@ -96,7 +96,6 @@ const imgID = (id, required) => {
 	const path = 'imgID';
 	if (!id & !required) return (true);
 	if (!id && !!required) return ({ path, error: 'required' });
-	if (!id.match(/^\d+$/)) return ({ path, error: 'invalid entry' });
 	return (true);
 };
 
