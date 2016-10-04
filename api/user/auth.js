@@ -9,7 +9,7 @@ const errorMessage = {
 };
 
 const checkToken = async (req, db) => {
-	const logToken = req.get('logToken');
+	const logToken = (req instanceof Object ? req.get('logToken') : req);
 	if (!logToken) return (null);
 	const users = db.collection('users');
 	const loggedUser = await users.findOne({ 'loginToken.token': logToken });

@@ -1,12 +1,13 @@
-import Joi from 'joi';
-import _ from 'lodash';
-import mongoConnectAsync from '../mongo';
-import * as userSchema from '../schema/users';
-import * as authController from './auth';
-import * as tools from '../tools';
-import * as tagController from '../tag';
+import Joi						from 'joi';
+import _						from 'lodash';
+import notify					from '../notify';
+import mongoConnectAsync		from '../mongo';
+import * as userSchema			from '../schema/users';
+import * as authController		from './auth';
+import * as tools				from '../tools';
+import * as tagController		from '../tag';
 
-const getSingular = (req, res) => {
+const getSingular = (sockList) => (req, res) => {
 	const { error } = Joi.validate(req.query, userSchema.username);
 	const { username } = req.query;
 	if (error) return (res.status(400).send(error.details));
@@ -26,6 +27,7 @@ const getSingular = (req, res) => {
 		}
 		const { birthdate, visit, interestCounter, interestedBy } = askedUser || '';
 		if (askedUser.username !== log.username) {
+			notify(sockList, db, `${log.username} has watched your profile`, askedUser.username);
 			const alreadyVisited = _.find(askedUser.visiter, (visiter) => visiter === log.username);
 			if (!alreadyVisited) {
 				await users.update({ username }, {
