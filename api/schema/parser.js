@@ -20,6 +20,7 @@ const password = (pass, checkSecure) => {
 
 const firstnameLastname = (name, required, first) => {
 	const path = first ? 'firstname' : 'lastname';
+	if (!name && !required) return (true);
 	if (!name && !!required) return ({ path, error: 'required' });
 	if (name.length > 30) return ({ path, error: '30 characters max' });
 	if (!name.match(/^[a-zA-Z]+$/)) return ({ path, error: 'invalid' });

@@ -1,10 +1,11 @@
-import Joi from 'joi';
-import mongoConnectAsync from '../mongo';
-import * as userSchema from '../schema/users';
-import * as authController from './auth';
-import * as reportController from './report';
+import Joi						from 'joi';
+import mongoConnectAsync		from '../mongo';
+import * as notify				from '../notify';
+import * as userSchema			from '../schema/users';
+import * as authController		from './auth';
+import * as reportController	from './report';
 
-const updateInterest = async (req, res) => {
+const updateInterest = (socketList) => async (req, res) => {
 	const { error } = Joi.validate(req.body, userSchema.username, { abortEarly: false });
 	if (error) return (res.status(400).send(error.details));
 	mongoConnectAsync(res, async (db) => {
@@ -38,6 +39,9 @@ const updateInterest = async (req, res) => {
 				return (res.status(200).send(
 					`${log.username}'s interest to ${username} successfully removed`));
 			}
+			notify.send(socketList, db,
+						`${log.username} is interested in your profile`,
+						verifiedUsername);
 			users.update({ username }, {
 				$inc: { interestCounter: 1 },
 				$push: { interestedIn: log.username },

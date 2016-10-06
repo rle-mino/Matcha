@@ -16,6 +16,7 @@ import * as interestController		from './api/user/interest';
 import * as authController			from './api/user/auth';
 import * as deleteController		from './api/user/delete';
 import * as reportController		from './api/user/report';
+import * as notify					from './api/notify';
 import * as tagController			from './api/tag';
 
 const app = express();
@@ -35,7 +36,11 @@ io.on('connection', (socket) => {
 		mongoConnectAsync(null, async (db) => {
 			const log = await authController.checkToken(data, db);
 			if (!log) return (socket.emit('connect status', 'unauthorized'));
-			users.push({ username: log.username, socket });
+			if (!_.find(users, (user) => user.username === log.username)) {
+				users.push({ username: log.username, socket });
+			} else {
+				console.log('already in');
+			}
 			console.log(users.map((el) => el.username));
 			return (socket.emit('connect status', 'approuved'));
 		});
@@ -50,6 +55,8 @@ io.on('connection', (socket) => {
 //		USER
 app.get('/api/user/singular/all', generalController.getSingular(users));
 app.get('/api/user/singular/fast', generalController.getFastDetails);
+// notifications
+app.get('/api/user/get_last_notif', notify.get);
 // password
 app.put('/api/user/forgot_password', passwordController.forgot);
 app.put('/api/user/reset_password', passwordController.resetWithKey);
@@ -58,9 +65,9 @@ app.put('/api/user/update/password', passwordController.changePassword);
 app.put('/api/user/add_details', detailsController.addDetails);
 app.post('/api/user/register', register.register);
 app.put('/api/user/confirm_mail', register.confirmMail);
-app.put('/api/user/update/profile', generalController.updateProfil);
+app.put('/api/user/update_profile', generalController.updateProfil);
 // interest
-app.put('/api/user/update/interest', interestController.updateInterest);
+app.put('/api/user/switch_interest', interestController.updateInterest(users));
 app.get('/api/user/get/self_interest', interestController.selfInterest);
 // update mail
 app.put('/api/user/update/mail1o2', updateMailController.updateMail1o2);

@@ -129,6 +129,40 @@ const removeIMGChecker = (data) => {
 	return (!error.length ? null : error);
 };
 
+const updateProfileChecker = (data) => {
+	const error = [];
+	let testVal = null;
+	testVal = parser.firstnameLastname(data.firstname, false, true);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.firstnameLastname(data.lastname, false, false);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.birthdate(data.birthdate, false);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.gender(data.gender, false);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.orientation(data.orientation, false);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.bio(data.bio, false);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.tags(data.tags, false);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.location(data.location, false);
+	if (testVal !== true) error.push(testVal);
+	_.forEach(data, (el, key) => {
+		if (key !== 'firstname' &&
+			key !== 'lastname' &&
+			key !== 'birthdate' &&
+			key !== 'sex' &&
+			key !== 'orientation' &&
+			key !== 'bio' &&
+			key !== 'tags' &&
+			key !== 'location') {
+				error.push({ path: key, error: 'unauthorized' });
+			}
+	});
+	return (!error.length ? null : error);
+};
+
 export {
 	registerChecker,
 	loginChecker,
@@ -137,4 +171,5 @@ export {
 	forgotPasswordChecker,
 	resetWithKeyChecker,
 	removeIMGChecker,
+	updateProfileChecker,
 };
