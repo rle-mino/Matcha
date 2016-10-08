@@ -20,6 +20,7 @@ const password = (pass, checkSecure) => {
 
 const firstnameLastname = (name, required, first) => {
 	const path = first ? 'firstname' : 'lastname';
+	if (name === '') return ({ path, error: '1 characters min' });
 	if (!name && !required) return (true);
 	if (!name && !!required) return ({ path, error: 'required' });
 	if (name.length > 30) return ({ path, error: '30 characters max' });

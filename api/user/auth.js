@@ -3,7 +3,7 @@ import * as crypto from '../crypto';
 import * as parserController from '../parserController';
 
 const errorMessage = {
-	status: 'fail',
+	status: false,
 	login: 'unknown',
 	details: 'user not authorized',
 };

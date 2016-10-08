@@ -21,7 +21,7 @@ import * as tagController			from './api/tag';
 
 const app = express();
 const server = http.createServer(app);
-const upload = multer({ dest: `${__dirname}/public` });
+const upload = multer({ dest: `${__dirname}/public` }).single('image');
 const io = socketIo(server);
 
 const users = [];
@@ -67,7 +67,7 @@ app.post('/api/user/register', register.register);
 app.put('/api/user/confirm_mail', register.confirmMail);
 app.put('/api/user/update_profile', generalController.updateProfil);
 // interest
-app.put('/api/user/switch_interest', interestController.updateInterest(users));
+app.put('/api/user/update_interest', interestController.updateInterest(users));
 app.get('/api/user/get/self_interest', interestController.selfInterest);
 // update mail
 app.put('/api/user/update/mail1o2', updateMailController.updateMail1o2);
@@ -79,11 +79,9 @@ app.delete('/api/user/delete', deleteController.deleteProfile2o2);
 app.put('/api/user/login', authController.login);
 app.put('/api/user/logout', authController.logout);
 //	image
-app.post('/api/user/add_image', upload.single('image'), imageController.add);
+app.post('/api/user/add_image', imageController.add(upload));
 app.put('/api/user/remove_image', imageController.remove);
-app.post('/api/user/replace_image', upload.single('image'), imageController.replace);
 app.get('/api/user/get_images', imageController.getAll);
-// app.get('/api/user/get_img_src/:imgname', imageController.getSRC);
 // report
 app.put('/api/user/report/fake', reportController.asFake);
 app.put('/api/user/report/block', reportController.asBlocked);
