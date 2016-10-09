@@ -15,7 +15,7 @@ const forgot = async (req, res) => {
 		const key = crypto.miniTokenGenerator();
 		mailer(mail, `Use this code to reset your password ${key}`, 'Reset your password');
 		await users.update({ mail }, { $set: { resetKey: key } });
-		return (sender(res, false, `A mail has been sent to ${mail}`));
+		return (sender(res, true, `A mail has been sent to ${mail}`));
 	});
 	return (false);
 };

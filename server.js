@@ -5,6 +5,7 @@ import cors							from 'cors';
 import http							from 'http';
 import socketIo						from 'socket.io';
 import _							from 'lodash';
+import expressJWT					from 'express-jwt';
 import mongoConnectAsync			from './api/mongo';
 import * as register				from './api/user/register';
 import * as passwordController		from './api/user/password';
@@ -26,10 +27,15 @@ const io = socketIo(server);
 
 const users = [];
 
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors());
 app.use('/api/user/get_img_src', express.static('public'));
+app.use(expressJWT({
+	secret: authController.secret,
+}).unless({ path: ['/api/user/login', '/api/user/register'] }));
+app.use(authController.error);
+app.use(authController.checkTokenMid);
 
 io.on('connection', (socket) => {
 	socket.on('auth', (data) => {
@@ -56,7 +62,7 @@ io.on('connection', (socket) => {
 app.get('/api/user/singular/all', generalController.getSingular(users));
 app.get('/api/user/singular/fast', generalController.getFastDetails);
 // notifications
-app.get('/api/user/get_last_notif', notify.get);
+app.get('/api/user/notification/latest', notify.get);
 // password
 app.put('/api/user/forgot_password', passwordController.forgot);
 app.put('/api/user/reset_password', passwordController.resetWithKey);
@@ -87,6 +93,6 @@ app.put('/api/user/report/fake', reportController.asFake);
 app.put('/api/user/report/block', reportController.asBlocked);
 
 //		TAG
-app.get('/api/tag/get/all', tagController.getAll);
+app.get('/api/tag/all', tagController.getAll);
 
 server.listen(8080, () => console.log('SERVER STARTED'));

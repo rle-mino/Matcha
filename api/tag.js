@@ -1,21 +1,18 @@
-import mongoConnectAsync from './mongo';
-
 const add = (newTags, db) => {
 	if (newTags.length) {
 		const tags = db.collection('tags');
 		newTags.map(async (tag) => {
 			const already = await tags.findOne({ value: tag });
 			if (!already) tags.insert({ value: tag });
+			return (!!already);
 		});
 	}
 };
 
-const getAll = (req, res) => {
-	mongoConnectAsync(res, async (db) => {
-		const tags = db.collection('tags');
-		const allTags = await tags.find().toArray();
-		res.status(200).json(allTags);
-	});
+const getAll = async (req, res) => {
+	const tags = req.db.collection('tags');
+	const allTags = await tags.find().toArray();
+	res.json(allTags);
 };
 
 export { add, getAll };

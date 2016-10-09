@@ -1,6 +1,8 @@
-import mongoConnectAsync from '../mongo';
-import * as crypto from '../crypto';
-import * as parserController from '../parserController';
+import jwt							from 'jsonwebtoken';
+import mongoConnectAsync			from '../mongo';
+import * as crypto					from '../crypto';
+import * as parserController		from '../parserController';
+import sender						from '../sender';
 
 const errorMessage = {
 	status: false,
@@ -8,33 +10,28 @@ const errorMessage = {
 	details: 'user not authorized',
 };
 
-const checkToken = async (req, db) => {
-	const logToken = (req instanceof Object ? req.get('logToken') : req);
+const secret = 'matcha secret string';
+
+const getToken = (req) => {
+	if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+        return req.headers.authorization.split(' ')[1];
+    } else if (req.query && req.query.token) {
+		return req.query.token;
+    }
+    return null;
+};
+
+const checkToken = async (token, db) => {
+	const logToken = token;
 	if (!logToken) return (null);
 	const users = db.collection('users');
-	const loggedUser = await users.findOne({ 'loginToken.token': logToken });
-	if (!loggedUser) return (null);
-	const actualDate = new Date().getTime() / 1000;
-	const lifeTime = actualDate - loggedUser.loginToken.creaDate;
-	if (lifeTime > 1209600) {
-		await users.update({ username: loggedUser.username }, { $unset: { loginToken: '' } });
-	// IF IT'S LESS THAN 10S
-	} else if (lifeTime <= 10) {
-		await users.update({ username: loggedUser.username },
-							{ $set: {
-								loginToken: {
-										token: loggedUser.loginToken.token,
-										creaDate: actualDate,
-									},
-								},
-							});
-	}
-	return (loggedUser);
+	const loggedUser = await users.findOne({ token });
+	return (loggedUser || null);
 };
 
 const setHeader = (res, token) => {
-	res.set('Access-Control-Expose-Headers', 'logToken');
-	res.set('logToken', token);
+	res.set('Access-Control-Expose-Headers', 'x-access-token');
+	res.set('x-access-token', token);
 };
 
 const login = async (req, res) => {
@@ -58,36 +55,59 @@ const login = async (req, res) => {
 				details: `${askedUser.username}'s account is not activated`,
 			}));
 		}
-		const loginToken = {
-			token: crypto.tokenGenerator(),
-			creaDate: new Date().getTime() / 1000,
-		};
-		setHeader(res, loginToken.token);
-		await users.update({ username }, { $set: { loginToken } });
-		return (res.send({
-			details: `${username} successfully connected`,
-			status: true,
-		}));
+		const token = jwt.sign({
+			username: askedUser.username,
+			id: askedUser._id,
+		}, secret);
+		await users.update({ username }, { $set: { token } });
+		setHeader(res, token);
+		return (sender(res, true, `${username} successfully connected`));
 	});
 	return (false);
 };
 
-const logout = (req, res) => {
-	const logToken = req.get('logToken');
-	if (!logToken) {
-		res.status(400).send('logToken require');
-	} else {
-		mongoConnectAsync(res, async (db) => {
-			const users = db.collection('users');
-			const askedUser = await users.findOne({ 'loginToken.token': logToken });
-			if (!askedUser) {
-				res.status(500).send(`impossible to find a user with ${logToken}`);
-			} else {
-				await users.update({ 'loginToken.token': logToken }, { $unset: { loginToken: '' } });
-				res.status(500).send('successfully disconnected');
-			}
-		});
-	}
+const logout = async (req, res) => {
+	const token = req.loggedUser.token;
+	const users = req.db.collection('users');
+	await users.update({ token }, { $unset: { token: '' } });
+	return (sender(res, true, 'successfully disconnected'));
 };
 
-export { login, logout, checkToken, errorMessage, setHeader };
+const uncheckedPath = [
+	'/api/user/login',
+	'/api/user/register',
+	'/api/user/forgot_password',
+	'/api/user/reset_password',
+];
+
+const checkTokenMid = (req, res, next) => {
+	if (uncheckedPath.indexOf(req.path) !== -1) return (next());
+	const token = getToken(req);
+	if (!token) return (sender(res, false, 'user unauthorized'));
+	jwt.verify(token, secret, (err) => {
+		if (err) return (sender(res, false, 'user unauthorized'));
+		mongoConnectAsync(res, async (db) => {
+			const users = db.collection('users');
+			const loggedUser = await users.findOne({ token });
+			if (!loggedUser) return (sender(res, false, 'user unauthorized'));
+			req.loggedUser = loggedUser;
+			req.db = db;
+			return (next());
+		});
+		return (true);
+	});
+	return (false);
+};
+
+const error = (err, req, res, next) => next();
+
+export {
+	login,
+	logout,
+	checkToken,
+	errorMessage,
+	setHeader,
+	error,
+	checkTokenMid,
+	secret,
+};

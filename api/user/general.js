@@ -10,61 +10,57 @@ import * as tools				from '../tools';
 import * as tagController		from '../tag';
 import * as parserController	from '../parserController';
 
-const getSingular = (sockList) => (req, res) => {
-	mongoConnectAsync(res, async (db) => {
-		const log = await authController.checkToken(req, db);
-		if (!log) return (res.send(authController.errorMessage));
-		const { username } = req.query;
-		const users = db.collection('users');
-		const askedUser = await users.findOne({ username: username || log.username }, {
-			password: 0,
-			loginToken: 0,
-			notifications: 0,
-		});
-		if (!askedUser) return sender(res, false, `Error - ${username} not found`);
-		if (reportController.areBlocked(log.username, askedUser.username)) {
-			return (sender(res, false, 'user\'s blocked'));
-		}
-		const { birthdate, visit, interestCounter, interestedBy } = askedUser || '';
-		if (askedUser.username !== log.username) {
-			const alreadyVisited = _.find(askedUser.visiter, (visiter) => visiter === log.username);
-			if (!alreadyVisited) {
-				notify.send(sockList, db, `${log.username} has looked at your profile`, askedUser);
-				await users.update({ username }, {
-					$inc: { visit: 1 },
-					$push: { visiter: log.username },
-				});
-			}
-		}
-		const age = new Date().getFullYear() - new Date(birthdate).getFullYear();
-		const popularity = tools.getPopularity(visit, interestCounter);
-		const interToReq = !!_.find(interestedBy,
-						(likedUser) => likedUser === log.username);
-		const allInfo = {
-			...askedUser,
-			popularity,
-			interToReq,
-			age,
-			location: askedUser.location ? askedUser.location.address : null,
-		};
-		if (askedUser.username === log.username) return (sender(res, true, 'success', allInfo));
-		const sendableInfo = await _.omit(allInfo, [
-			'_id',
-			'mail',
-			'birthdate',
-			'visit',
-			'visiter',
-			'interestedBy',
-			'interestCounter',
-			'interestedIn',
-			'blockedBy',
-			'reporterFake',
-			'notifications',
-			'location',
-		]);
-		return (sender(res, true, 'success', sendableInfo));
+const getSingular = (sockList) => async (req, res) => {
+	const log = req.loggedUser;
+	const { username } = req.query;
+	const users = req.db.collection('users');
+	const askedUser = await users.findOne({ username: username || log.username }, {
+		password: 0,
+		loginToken: 0,
+		notifications: 0,
 	});
-	return (false);
+	if (!askedUser) return sender(res, false, `Error - ${username} not found`);
+	if (reportController.areBlocked(log.username, askedUser.username)) {
+		return (sender(res, false, 'user\'s blocked'));
+	}
+	const { birthdate, visit, interestCounter, interestedBy } = askedUser || '';
+	if (askedUser.username !== log.username) {
+		const alreadyVisited = _.find(askedUser.visiter, (visiter) => visiter === log.username);
+		if (!alreadyVisited) {
+			notify.send(sockList, req.db, `${log.username} has looked at your profile`, askedUser);
+			await users.update({ username }, {
+				$inc: { visit: 1 },
+				$push: { visiter: log.username },
+			});
+		}
+	}
+	const age = new Date().getFullYear() - new Date(birthdate).getFullYear();
+	const popularity = tools.getPopularity(visit, interestCounter);
+	const interToReq = !!_.find(interestedBy,
+					(likedUser) => likedUser === log.username);
+	const allInfo = {
+		...askedUser,
+		popularity,
+		interToReq,
+		age,
+		location: askedUser.location ? askedUser.location.address : null,
+	};
+	if (askedUser.username === log.username) return (sender(res, true, 'success', allInfo));
+	const sendableInfo = await _.omit(allInfo, [
+		'_id',
+		'mail',
+		'birthdate',
+		'visit',
+		'visiter',
+		'interestedBy',
+		'interestCounter',
+		'interestedIn',
+		'blockedBy',
+		'reporterFake',
+		'notifications',
+		'location',
+	]);
+	return (sender(res, true, 'success', sendableInfo));
 };
 
 const getFastDetails = (req, res) => {
@@ -116,19 +112,13 @@ const getFastDetails = (req, res) => {
 };
 
 const updateProfil = async (req, res) => {
+	const log = req.loggedUser;
 	const error = await parserController.updateProfileChecker(req.body);
 	if (error) return (sender(res, false, 'invalid request', error));
-	mongoConnectAsync(res, async (db) => {
-		const log = await authController.checkToken(req, db);
-		if (!log) return (res.send(authController.errorMessage));
-		const users = db.collection('users');
-		if (req.body.tags) {
-			tagController.add(req.body.tags, db);
-		}
-		await users.update({ username: log.username }, { $set: req.body });
-		return (sender(res, true, `${log.username}'s data successfully updated`));
-	});
-	return (false);
+	const users = req.db.collection('users');
+	if (req.body.tags) tagController.add(req.body.tags, req.db);
+	await users.update({ username: log.username }, { $set: req.body });
+	return (sender(res, true, `${log.username}'s data successfully updated`));
 };
 
 export { getSingular, getFastDetails, updateProfil };

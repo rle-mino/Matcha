@@ -152,7 +152,7 @@ const updateProfileChecker = (data) => {
 		if (key !== 'firstname' &&
 			key !== 'lastname' &&
 			key !== 'birthdate' &&
-			key !== 'sex' &&
+			key !== 'gender' &&
 			key !== 'orientation' &&
 			key !== 'bio' &&
 			key !== 'tags' &&
