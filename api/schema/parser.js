@@ -24,7 +24,7 @@ const firstnameLastname = (name, required, first) => {
 	if (!name && !required) return (true);
 	if (!name && !!required) return ({ path, error: 'required' });
 	if (name.length > 30) return ({ path, error: '30 characters max' });
-	if (!name.match(/^[a-zA-Z]+$/)) return ({ path, error: 'invalid' });
+	if (!name.match(/^[a-zA-Z ]+$/)) return ({ path, error: 'invalid' });
 	return (true);
 };
 
@@ -77,6 +77,9 @@ const bio = (biog, required) => {
 	if (!biog && !required) return (true);
 	if (!biog && !!required) return ({ path, error: 'required' });
 	if (biog.length < 80) return ({ path, error: '80 characters min' });
+	if (!biog.match(/^[a-zA-Z0-9 .,:;\-]+$/)) {
+		return ({ path, error: 'alphanumeric characters only' });
+	}
 	return (true);
 };
 
@@ -90,7 +93,9 @@ const tags = (tagsList, required) => {
 
 const location = (loca, required) => {
 	const path = 'location';
+	if (!loca && !required) return (true);
 	if (!loca && !!required) return ({ path, error: 'required' });
+	if (!(loca instanceof Object)) return ({ path, error: 'invalid' });
 	return (true);
 };
 

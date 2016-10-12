@@ -16,7 +16,7 @@ const getSingular = (sockList) => async (req, res) => {
 	const users = req.db.collection('users');
 	const askedUser = await users.findOne({ username: username || log.username }, {
 		password: 0,
-		loginToken: 0,
+		token: 0,
 		notifications: 0,
 	});
 	if (!askedUser) return sender(res, false, `Error - ${username} not found`);
@@ -64,6 +64,7 @@ const getSingular = (sockList) => async (req, res) => {
 };
 
 const getFastDetails = (req, res) => {
+	// TODO update getFastDetails's function
 	const { error } = Joi.validate(req.query, userSchema.username);
 	if (error) return (res.status(400).send(error.details));
 	mongoConnectAsync(res, async (db) => {
@@ -100,13 +101,14 @@ const getFastDetails = (req, res) => {
 				'interestCounter',
 				'blockedBy',
 			]);
-			return (res.status(200).send({ ...fastDetails,
-								interToReq: interToMe || false,
-								age,
-								popularity,
-							}));
+			return (sender(res, true, 'success', {
+				...fastDetails,
+				interToReq: !!interToMe,
+				age,
+				popularity,
+			}));
 		}
-		return (res.status(500).send(`Error - ${username} not found`));
+		return (sender(res, false, `Error - ${username} not found`));
 	});
 	return (false);
 };
