@@ -41,7 +41,7 @@ const birthdate = (birth, required) => {
 	const path = 'birthdate';
 	if (!birth && !required) return (true);
 	if (!birth && !!required) return ({ path, error: 'required' });
-	if (!birth.match(/^(0?\d|[12]\d|3[01])-(0?\d|1[012])-((?:19|20)\d{2})$/)) {
+	if (!birth.match(/^(0?\d|1[012])-(0?\d|[12]\d|3[01])-((?:19|20)\d{2})$/)) {
 		return ({ path, error: 'invalid entry' });
 	}
 	if (birth.length !== 10) return ({ path, error: 'invalid entry' });

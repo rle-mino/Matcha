@@ -44,16 +44,9 @@ const login = async (req, res) => {
 			username,
 			password: crypto.encrypt(password),
 		});
-		if (!askedUser) {
-			return (res.send({
-				status: false,
-				details: 'Username or password invalid',
-			}));
-		} else if (askedUser && askedUser.confirmationKey) {
-			return (res.send({
-				status: false,
-				details: `${askedUser.username}'s account is not activated`,
-			}));
+		if (!askedUser) return (sender(res, false, 'username or password invalid'));
+		else if (askedUser && askedUser.confirmationKey) {
+			return (sender(res, false, `${askedUser.username}'s account is not activated`));
 		}
 		const token = jwt.sign({
 			username: askedUser.username,
@@ -78,6 +71,7 @@ const uncheckedPath = [
 	'/api/user/register',
 	'/api/user/forgot_password',
 	'/api/user/reset_password',
+	'/api/user/confirm_mail',
 ];
 
 const checkTokenMid = (req, res, next) => {
@@ -110,4 +104,5 @@ export {
 	error,
 	checkTokenMid,
 	secret,
+	uncheckedPath,
 };

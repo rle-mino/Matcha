@@ -33,7 +33,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/api/user/get_img_src', express.static('public'));
 app.use(expressJWT({
 	secret: authController.secret,
-}).unless({ path: ['/api/user/login', '/api/user/register'] }));
+}).unless({ path: authController.uncheckedPath }));
 app.use(authController.error);
 app.use(authController.checkTokenMid);
 

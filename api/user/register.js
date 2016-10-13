@@ -1,9 +1,10 @@
-import Joi						from 'joi';
+import jwt						from 'jsonwebtoken';
+import sender					from '../sender';
 import mailer					from '../mail';
 import mongoConnectAsync		from '../mongo';
 import * as crypto				from '../crypto';
-import * as userSchema			from '../schema/users';
 import * as parserController	from '../parserController';
+import * as authController		from './auth';
 
 const register = async (req, res) => {
 	const error = await parserController.registerChecker(req.body);
@@ -48,28 +49,24 @@ const register = async (req, res) => {
 
 const confirmMail = async (req, res) => {
 	const error = await parserController.confirmMailChecker(req.body);
-	if (error) {
-		return (res.send({
-			status: false,
-			details: 'invalid request',
-			error,
-		}));
-	}
+	if (error) return (sender(res, false, 'invalid request', error));
 	mongoConnectAsync(res, async (db) => {
 		const { username, newMailKey } = req.body;
 		const users = db.collection('users');
 		const askedUser = await users.findOne({ username, confirmationKey: newMailKey });
 		if (!askedUser) {
-			return (res.send({
-				status: false,
-				details: 'impossible to activate this account with this code',
-			}));
+			return (sender(res, false, 'impossible to activate this account with this code'));
 		}
-		users.update({ username }, { $unset: { confirmationKey: '' } });
-		return (res.send({
-			status: true,
-			details: 'account successfully activated',
-		}));
+		const token = jwt.sign({
+			username: askedUser.username,
+			id: askedUser._id,
+		}, authController.secret);
+		users.update({ username }, {
+			$unset: { confirmationKey: '' },
+			$set: { token },
+		});
+		authController.setHeader(res, token);
+		return (sender(res, true, 'account successfully activated'));
 	});
 	return (false);
 };

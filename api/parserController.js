@@ -48,7 +48,7 @@ const loginChecker = async (data) => {
 const detailsChecker = (data) => {
 	const error = [];
 	let testVal = null;
-	testVal = parser.gender(data.gender, false);
+	testVal = parser.gender(data.gender, true);
 	if (testVal !== true) error.push(testVal);
 	testVal = parser.orientation(data.orientation, false);
 	if (testVal !== true) error.push(testVal);
