@@ -30,7 +30,7 @@ const getSingular = (sockList) => async (req, res) => {
 			notify.send(sockList, req.db, `${log.username} has looked at your profile`, askedUser);
 			await users.update({ username }, {
 				$inc: { visit: 1 },
-				$push: { visiter: log.username },
+				$push: { visiter: { $each: [log.username], $position: 0 } },
 			});
 		}
 	}

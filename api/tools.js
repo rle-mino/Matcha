@@ -4,6 +4,6 @@ const roundTwo = (nb) => {
 	return (nbR / 100);
 };
 
-const getPopularity = (visit, likes) => roundTwo((likes * 100) / visit);
+const getPopularity = (visit, likes) => roundTwo((likes * 100) / visit) || 0;
 
 export { roundTwo, getPopularity };

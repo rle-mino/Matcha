@@ -32,6 +32,7 @@ const register = async (req, res) => {
 			password: crypto.encrypt(password),
 			confirmationKey: token,
 			visit: 0,
+			visiter: [],
 			interestCounter: 0,
 			interestedBy: [],
 			interestedIn: [],

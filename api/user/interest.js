@@ -1,58 +1,102 @@
-import Joi						from 'joi';
+import _						from 'lodash';
+import sender					from '../sender';
 import mongoConnectAsync		from '../mongo';
 import * as notify				from '../notify';
-import * as userSchema			from '../schema/users';
 import * as authController		from './auth';
 import * as reportController	from './report';
 
 const updateInterest = (socketList) => async (req, res) => {
-	const { error } = Joi.validate(req.body, userSchema.username, { abortEarly: false });
-	if (error) return (res.status(400).send(error.details));
-	mongoConnectAsync(res, async (db) => {
-		const log = await authController.checkToken(req, db);
-		if (!log) await res.status(401).send(authController.errorMessage);
-		if ((log.images && log.images.length === 0) || !log.images) {
-			return (res.status(500).send(
-			`${log.username} needs to upload at least one image before showing his interest to someone`));
+	const liker = req.loggedUser;
+	if ((liker.images && liker.images.length === 0) || !liker.images) {
+		return (sender(res, false,
+'user needs to upload at least one image before showing his interest to someone'));
+	}
+	const users = req.db.collection('users');
+	const { username } = req.body;
+	if (!username) {
+		return (sender(res, false, 'invalid request', { path: 'username', error: 'required' }));
+	}
+	const liked = await users.findOne({ username, confirmationKey: { $exists: false } });
+	if (!liked) {
+		return (sender(res, false, 'user does not exist'));
+	}
+	if (liked === liker.username) {
+		return (sender(res, false, 'interest to himself impossible'));
+	}
+	if (reportController.areBlocked(liked, liker)) {
+		return (sender(res, false, 'user\'s blocked'));
+	}
+	const alreadyLiked = liked.interestedIn.indexOf(liker.username);
+	if (alreadyLiked !== -1) {
+		users.update({ username: liker.username }, {
+			$pull: { interestedBy: liked.username },
+		});
+		users.update({ username: liked.username }, {
+			$inc: { interestCounter: -1 },
+			$pull: { interestedIn: liker.username },
+		});
+		if (liker.interestedIn.indexOf(liked.username) !== -1) {
+			notify.send(socketList, req.db,
+				`${liker.username} no longer interested in your profile`, liked);
 		}
-		const users = db.collection('users');
-		const { username } = req.body;
-		const verifiedUsername = await users.findOne({ username, confirmationKey: { $exists: false } });
-		if (verifiedUsername && verifiedUsername === log.username) {
-			return (res.status(500).send('interest to himself impossible'));
-		}
-		if (!verifiedUsername) return (res.status(500).send(`${username} does not exist`));
-		if (reportController.areBlocked(verifiedUsername, log)) {
-			return (res.status(500).send('user\'s blocked'));
-		}
-		if (verifiedUsername && verifiedUsername.username !== log.username) {
-			const alreadyInterested = await users.findOne({
-				username: log.username,
-				interestedBy: username,
-			});
-			if (alreadyInterested) {
-				users.update({ username }, {
-						$inc: { interestCounter: -1 },
-						$pull: { interestedIn: log.username },
-				});
-				await users.update({ username: log.username }, { $pull: { interestedBy: username } });
-				return (res.status(200).send(
-					`${log.username}'s interest to ${username} successfully removed`));
-			}
-			notify.send(socketList, db,
-						`${log.username} is interested in your profile`,
-						verifiedUsername);
-			users.update({ username }, {
-				$inc: { interestCounter: 1 },
-				$push: { interestedIn: log.username },
-			});
-			await users.update({ username: log.username }, { $push: { interestedBy: username } });
-			return (res.status(200).send(`${log.username}'s interest to ${username} successfully added`));
-		}
-		return (false);
-	});
-	return (false);
+	} else {
+		users.update({ username: liker.username }, {
+			$push: { interestedBy: { $each: [liked.username], $position: 0 } },
+		});
+		users.update({ username: liked.username }, {
+			$inc: { interestCounter: 1 },
+			$push: { interestedIn: { $each: [liker.username], $position: 0 } },
+		});
+		notify.send(socketList, req.db,
+			`${liker.username} is interested in your profile`, liked);
+	}
+	return (sender(res, true, 'interest successfully updated'));
 };
+
+// const updateInterest = (socketList) => async (req, res) => {
+// 	const log = req.loggedUser;
+// 	if ((log.images && log.images.length === 0) || !log.images) {
+// 		return (sender(res, false,
+// `${log.username} needs to upload at least one image before showing his interest to someone`));
+// 	}
+// 	const users = req.db.collection('users');
+// 	const { username } = req.body;
+// 	if (!username) {
+// 		return (sender(res, false, 'invalid request', { path: 'username', error: 'required' }));
+// 	}
+// 	const verifiedUsername = await users.findOne({ username, confirmationKey: { $exists: false } });
+// 	if (verifiedUsername && verifiedUsername === log.username) {
+// 		return (sender(res, false, 'interest to himself impossible'));
+// 	}
+// 	if (!verifiedUsername) return (sender(res, false, `${username} does not exist`));
+// 	if (reportController.areBlocked(verifiedUsername, log)) {
+// 		return (sender(res, false, 'user\'s blocked'));
+// 	}
+// 	if (verifiedUsername.username !== log.username) {
+// 		const alreadyInterested = await users.findOne({
+// 			username: log.username,
+// 			interestedBy: username,
+// 		});
+// 		if (alreadyInterested) {
+// 			users.update({ username }, {
+// 					$inc: { interestCounter: -1 },
+// 					$pull: { interestedIn: log.username },
+// 			});
+// 			await users.update({ username: log.username }, { $pull: { interestedBy: username } });
+// 			return (sender(res, true, `${log.username}'s interest to ${username} successfully removed`));
+// 		}
+// 		notify.send(socketList, req.db,
+// 					`${log.username} is interested in your profile`,
+// 					verifiedUsername);
+// 		users.update({ username }, {
+// 			$inc: { interestCounter: 1 },
+// 			$push: { interestedIn: log.username },
+// 		});
+// 		users.update({ username: log.username }, { $push: { interestedBy: username } });
+// 		return (sender(res, true, `${log.username}'s interest to ${username} successfully added`));
+// 	}
+// 	return (false);
+// };
 
 const selfInterest = (req, res) => {
 	mongoConnectAsync(res, async (db) => {
