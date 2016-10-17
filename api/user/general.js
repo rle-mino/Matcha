@@ -34,6 +34,7 @@ const getSingular = (sockList) => async (req, res) => {
 			});
 		}
 	}
+	console.log((new Date(birthdate) - new Date()).getFullYear());
 	const age = new Date().getFullYear() - new Date(birthdate).getFullYear();
 	const popularity = tools.getPopularity(visit, interestCounter);
 	const interToReq = !!_.find(interestedBy,

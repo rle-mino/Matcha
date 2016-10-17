@@ -1,4 +1,3 @@
-import _						from 'lodash';
 import sender					from '../sender';
 import mongoConnectAsync		from '../mongo';
 import * as notify				from '../notify';
@@ -52,51 +51,6 @@ const updateInterest = (socketList) => async (req, res) => {
 	}
 	return (sender(res, true, 'interest successfully updated'));
 };
-
-// const updateInterest = (socketList) => async (req, res) => {
-// 	const log = req.loggedUser;
-// 	if ((log.images && log.images.length === 0) || !log.images) {
-// 		return (sender(res, false,
-// `${log.username} needs to upload at least one image before showing his interest to someone`));
-// 	}
-// 	const users = req.db.collection('users');
-// 	const { username } = req.body;
-// 	if (!username) {
-// 		return (sender(res, false, 'invalid request', { path: 'username', error: 'required' }));
-// 	}
-// 	const verifiedUsername = await users.findOne({ username, confirmationKey: { $exists: false } });
-// 	if (verifiedUsername && verifiedUsername === log.username) {
-// 		return (sender(res, false, 'interest to himself impossible'));
-// 	}
-// 	if (!verifiedUsername) return (sender(res, false, `${username} does not exist`));
-// 	if (reportController.areBlocked(verifiedUsername, log)) {
-// 		return (sender(res, false, 'user\'s blocked'));
-// 	}
-// 	if (verifiedUsername.username !== log.username) {
-// 		const alreadyInterested = await users.findOne({
-// 			username: log.username,
-// 			interestedBy: username,
-// 		});
-// 		if (alreadyInterested) {
-// 			users.update({ username }, {
-// 					$inc: { interestCounter: -1 },
-// 					$pull: { interestedIn: log.username },
-// 			});
-// 			await users.update({ username: log.username }, { $pull: { interestedBy: username } });
-// 			return (sender(res, true, `${log.username}'s interest to ${username} successfully removed`));
-// 		}
-// 		notify.send(socketList, req.db,
-// 					`${log.username} is interested in your profile`,
-// 					verifiedUsername);
-// 		users.update({ username }, {
-// 			$inc: { interestCounter: 1 },
-// 			$push: { interestedIn: log.username },
-// 		});
-// 		users.update({ username: log.username }, { $push: { interestedBy: username } });
-// 		return (sender(res, true, `${log.username}'s interest to ${username} successfully added`));
-// 	}
-// 	return (false);
-// };
 
 const selfInterest = (req, res) => {
 	mongoConnectAsync(res, async (db) => {

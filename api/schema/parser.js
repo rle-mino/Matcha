@@ -77,7 +77,7 @@ const bio = (biog, required) => {
 	if (!biog && !required) return (true);
 	if (!biog && !!required) return ({ path, error: 'required' });
 	if (biog.length < 80) return ({ path, error: '80 characters min' });
-	if (!biog.match(/^[a-zA-Z0-9 .,:;\-]+$/)) {
+	if (!biog.match(/^[a-zA-Z0-9 .,:;'-\s]+$/)) {
 		return ({ path, error: 'alphanumeric characters only' });
 	}
 	return (true);
