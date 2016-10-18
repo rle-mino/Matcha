@@ -10,6 +10,14 @@ import * as tools				from '../tools';
 import * as tagController		from '../tag';
 import * as parserController	from '../parserController';
 
+const getAge = (birthdate) => {
+	const now = new Date();
+	const birthDate = new Date(birthdate).getTime();
+	const diffMs = now - birthDate;
+	const ageDate = new Date(diffMs);
+	return (Math.abs(ageDate.getUTCFullYear() - 1970));
+};
+
 const getSingular = (sockList) => async (req, res) => {
 	const log = req.loggedUser;
 	const { username } = req.query;
@@ -34,8 +42,7 @@ const getSingular = (sockList) => async (req, res) => {
 			});
 		}
 	}
-	console.log((new Date(birthdate) - new Date()).getFullYear());
-	const age = new Date().getFullYear() - new Date(birthdate).getFullYear();
+	const age = getAge(birthdate);
 	const popularity = tools.getPopularity(visit, interestCounter);
 	const interToReq = !!_.find(interestedBy,
 					(likedUser) => likedUser === log.username);
