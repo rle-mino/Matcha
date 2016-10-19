@@ -163,6 +163,45 @@ const updateProfileChecker = (data) => {
 	return (!error.length ? null : error);
 };
 
+const searchChecker = (data) => {
+	const error = [];
+	let testVal = null;
+	testVal = parser.name(data.name, false);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.ageMin(data.ageMin, true);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.ageMax(data.ageMax, true);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.age(data.ageMin, data.ageMax);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.distPopTag(data.tagMin, true, 'tagMin');
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.distPopTag(data.tagMax, true, 'tagMax');
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.distPopTag(data.distMin, true, 'distMin');
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.distPopTag(data.distMax, true, 'distMax');
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.distPopTag(data.popMin, true, 'popMin');
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.distPopTag(data.popMax, true, 'popMax');
+	if (testVal !== true) error.push(testVal);
+	_.forEach(data, (el, key) => {
+		if (key !== 'name' &&
+			key !== 'ageMin' &&
+			key !== 'ageMax' &&
+			key !== 'tagMin' &&
+			key !== 'tagMax' &&
+			key !== 'distMin' &&
+			key !== 'distMax' &&
+			key !== 'popMin' &&
+			key !== 'popMax') {
+				error.push({ path: key, error: 'unauthorized' });
+			}
+	});
+	return (!error.length ? null : error);
+};
+
 export {
 	registerChecker,
 	loginChecker,
@@ -172,4 +211,5 @@ export {
 	resetWithKeyChecker,
 	removeIMGChecker,
 	updateProfileChecker,
+	searchChecker,
 };

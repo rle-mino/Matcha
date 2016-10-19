@@ -127,6 +127,43 @@ const resetKey = (resKey, required) => {
 	return (true);
 };
 
+const name = (val, required) => {
+	const path = 'name';
+	if ((!val || val === '') && !required) return (true);
+	if (!val && required) return ({ path, error: 'required' });
+	if (!val.match(/^[a-zA-Z0-9 .,:;'-\s]+$/)) return ({ path, error: 'invalid name' });
+	return (true);
+};
+
+const ageMin = (val, required) => {
+	const path = 'age';
+	if (!val && !required) return (true);
+	if (!val && required) return ({ path, error: 'required' });
+	if (val < 18) return ({ path, error: 'invalid' });
+	return (true);
+};
+
+const ageMax = (val, required) => {
+	const path = 'age';
+	if (!val && !required) return (true);
+	if (!val && required) return ({ path, error: 'required' });
+	if (val < 18 || val > 100) return ({ path, error: 'invalid' });
+	return (true);
+};
+
+const age = (min, max) => {
+	if (min - max > 0) return ({ path: 'ageMin', error: 'invalid' });
+	if (max - min < 0) return ({ path: 'ageMax', error: 'invalid' });
+	return (true);
+};
+
+const distPopTag = (val, required, path) => {
+	if (!val && !required) return (true);
+	if (!val && required) return ({ path, error: 'required' });
+	if (val < 0 || val > 100) return ({ path, error: 'invalid' });
+	return (true);
+};
+
 export {
 	username,
 	password,
@@ -142,4 +179,9 @@ export {
 	newMailKey,
 	deleteKey,
 	resetKey,
+	distPopTag,
+	age,
+	ageMax,
+	ageMin,
+	name,
 };

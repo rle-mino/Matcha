@@ -17,6 +17,7 @@ import * as interestController		from './api/user/interest';
 import * as authController			from './api/user/auth';
 import * as deleteController		from './api/user/delete';
 import * as reportController		from './api/user/report';
+import * as searchController		from './api/user/search';
 import * as notify					from './api/notify';
 import * as tagController			from './api/tag';
 
@@ -91,6 +92,9 @@ app.get('/api/user/get_images', imageController.getAll);
 // report
 app.put('/api/user/report/fake', reportController.asFake);
 app.put('/api/user/report/block', reportController.asBlocked);
+// search
+
+app.get('/api/user/search', searchController.user);
 
 //		TAG
 app.get('/api/tag/all', tagController.getAll);
