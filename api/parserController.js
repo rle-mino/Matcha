@@ -186,6 +186,14 @@ const searchChecker = (data) => {
 	if (testVal !== true) error.push(testVal);
 	testVal = parser.distPopTag(data.popMax, true, 'popMax');
 	if (testVal !== true) error.push(testVal);
+	testVal = parser.gender(data.gender, false);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.orientation(data.orientation1, false);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.orientation(data.orientation2, false);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.orientation(data.orientation3, false);
+	if (testVal !== true) error.push(testVal);
 	_.forEach(data, (el, key) => {
 		if (key !== 'name' &&
 			key !== 'ageMin' &&
@@ -195,6 +203,10 @@ const searchChecker = (data) => {
 			key !== 'distMin' &&
 			key !== 'distMax' &&
 			key !== 'popMin' &&
+			key !== 'gender' &&
+			key !== 'orientation1' &&
+			key !== 'orientation2' &&
+			key !== 'orientation3' &&
 			key !== 'popMax') {
 				error.push({ path: key, error: 'unauthorized' });
 			}

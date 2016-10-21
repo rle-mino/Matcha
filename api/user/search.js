@@ -1,3 +1,5 @@
+import _							from 'lodash';
+import geolib						from 'geolib';
 import sender						from '../sender';
 import * as parserController		from '../parserController';
 import * as tools					from '../tools';
@@ -5,12 +7,7 @@ import * as tools					from '../tools';
 const filterTags = async (results, req, tagMin, tagMax) => {
 	return await results.filter((user) => {
 		if (req.loggedUser.tags.length) {
-			const commonTags = req.loggedUser.tags.reduce((accu, actual, index) => { // REDUCE
-				let val = 0;
-				if (index === 1 && user.tags && user.tags.indexOf(accu) !== -1) val++;
-				if (user.tags && user.tags.indexOf(actual) !== -1) val++;
-				return (index === 1 ? val : accu + val);
-			});
+			const commonTags = user.commonTags;
 			return (commonTags >= tagMin && (commonTags <= tagMax || tagMax === 100));
 		}
 		return (false);
@@ -19,16 +16,78 @@ const filterTags = async (results, req, tagMin, tagMax) => {
 
 const filterAge = async (results, ageMin, ageMax) => {
 	return await results.filter((user) => {
-		const age = tools.getAge(user.birthdate);
-		if (typeof age !== 'number') return (false);
-		return (age >= ageMin && age <= ageMax);
+		if (typeof user.age !== 'number') return (false);
+		return (user.age >= ageMin && user.age <= ageMax);
 	});
 };
 
 const filterPop = async (results, popMin, popMax) => {
 	return await results.filter((user) => {
-		const popularity = tools.getPopularity(user.visit, user.interestCounter);
-		return (popularity >= popMin && (popularity <= popMax || popMax === 100));
+		return (user.popularity >= popMin && (user.popularity <= popMax || popMax === 100));
+	});
+};
+
+const filterDist = async (results, req, distMin, distMax) => {
+	return await results.filter((user) => {
+		const distance = geolib.getDistance({
+			latitude: req.loggedUser.location.lat,
+			longitude: req.loggedUser.location.lng,
+		}, {
+			latitude: user.location.lat,
+			longitude: user.location.lng,
+		});
+		const kmDist = distance / 1000;
+		user.dist = kmDist;
+		return (kmDist >= distMin && (kmDist <= distMax));
+	});
+};
+
+const getSearchOBJ = (query, req) => {
+	let searchOBJ = {
+		confirmationKey: { $exists: false },
+		blockedBy: { $nin: [req.loggedUser.username] },
+		$and: [],
+	};
+	const regex = new RegExp(`${query.name}`);
+
+	if (query.name) {
+		searchOBJ.$and[0] = {
+			$or: [
+				{ username: regex },
+				{ firstname: regex },
+				{ lastname: regex },
+		] };
+	}
+	if (query.orientation1 || query.orientation2 || query.orientation3) {
+		searchOBJ.$and[searchOBJ.$and.length] = {
+			$or: [
+				{ orientation: query.orientation1 || false },
+				{ orientation: query.orientation2 || false },
+				{ orientation: query.orientation3 || false },
+			] };
+	}
+	if (query.gender) searchOBJ.gender = query.gender;
+	if (req.loggedUser.blockedBy) {
+		const blockedUsernames = req.loggedUser.blockedBy.map((blocked) => {
+			return ({ username: blocked });
+		});
+		if (blockedUsernames.length > 0) {
+			searchOBJ.$and[searchOBJ.$and.length].$nor = blockedUsernames;
+		}
+	}
+	if (searchOBJ.$and.length === 0) {
+		searchOBJ = _.omit(searchOBJ, ['$and']);
+	}
+	console.log(searchOBJ);
+	return (searchOBJ);
+};
+
+const addUsefullData = async (results, req) => {
+	return await results.map((user) => {
+		user.age = tools.getAge(user.birthdate);
+		user.populuarity = tools.getPopularity(user.visit, user.interestCounter);
+		user.commonTags = tools.getCommonTags(req.loggedUser, user);
+		return (user);
 	});
 };
 
@@ -38,16 +97,14 @@ const user = async (req, res) => {
 	const { query } = req;
 	let results = [];
 	const users = req.db.collection('users');
-	if (query.name) {
-		const regex = new RegExp(`${query.name}`);
-		results = await users.find({
-			$or: [
-				{ username: regex },
-				{ firstname: regex },
-				{ lastname: regex },
-			],
-		}).toArray();
-	} else results = await users.find().toArray();
+	const searchOBJ = await getSearchOBJ(query, req);
+	results = await users.find(searchOBJ).toArray();
+	// add usefull data
+	results = await addUsefullData(results, req);
+	// filter dist
+	const distMin = parseInt(query.distMin, 10);
+	const distMax = parseInt(query.distMax, 10);
+	results = await filterDist(results, req, distMin, distMax);
 	// filter tags
 	const tagMin = parseInt(query.tagMin, 10);
 	const tagMax = parseInt(query.tagMax, 10);
@@ -66,9 +123,24 @@ const user = async (req, res) => {
 	if (popMin !== 0 || popMax !== 100) {
 		results = await filterPop(results, popMin, popMax);
 	}
-	// filter dist
-	// filter gender
-	// filter orientation
+	results = results.map((userOBJ) => _.omit(userOBJ, [
+		'password',
+		'birthdate',
+		'mail',
+		'visit',
+		'interestCounter',
+		'interestedBy',
+		'interestedIn',
+		'loginToken',
+		'token',
+		'tags',
+		'location',
+		'bio',
+		'reporterFake',
+		'blockedBy',
+		'visiter',
+		'notifications',
+	]));
 	return (sender(res, true, 'success', results));
 };
 
