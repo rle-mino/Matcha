@@ -82,7 +82,7 @@ app.put('/api/user/update/mail2o2', updateMailController.updateMail2o2);
 // delete
 app.put('/api/user/delete/send_delete', deleteController.deleteProfile1o2);
 app.delete('/api/user/delete', deleteController.deleteProfile2o2);
-// log
+// logP
 app.put('/api/user/login', authController.login);
 app.put('/api/user/logout', authController.logout);
 //	image

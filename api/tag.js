@@ -1,5 +1,5 @@
 const add = (newTags, db) => {
-	if (newTags.length) {
+	if (newTags && newTags.length) {
 		const tags = db.collection('tags');
 		newTags.map(async (tag) => {
 			const already = await tags.findOne({ value: tag });

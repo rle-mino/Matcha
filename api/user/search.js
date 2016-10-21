@@ -78,14 +78,13 @@ const getSearchOBJ = (query, req) => {
 	if (searchOBJ.$and.length === 0) {
 		searchOBJ = _.omit(searchOBJ, ['$and']);
 	}
-	console.log(searchOBJ);
 	return (searchOBJ);
 };
 
 const addUsefullData = async (results, req) => {
 	return await results.map((user) => {
 		user.age = tools.getAge(user.birthdate);
-		user.populuarity = tools.getPopularity(user.visit, user.interestCounter);
+		user.popularity = tools.getPopularity(user.visit, user.interestCounter);
 		user.commonTags = tools.getCommonTags(req.loggedUser, user);
 		return (user);
 	});

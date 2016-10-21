@@ -16,13 +16,14 @@ const getAge = (birthdate) => {
 
 const getCommonTags = (userA, userB) => {
 	if (userA.tags && userA.tags.length && userB.tags && userB.tags.length) {
-		userA.tags.reduce((accu, actual, index) => {
+		return userA.tags.reduce((accu, actual, index) => {
 			let val = 0;
 			if (index === 1 && userB.tags && userB.tags.indexOf(accu) !== -1) val++;
 			if (userB.tags && userB.tags.indexOf(actual) !== -1) val++;
 			return (index === 1 ? val : accu + val);
 		});
-	} else return (0);
+	}
+	return (0);
 };
 
 export { roundTwo, getPopularity, getAge, getCommonTags };
