@@ -194,6 +194,8 @@ const searchChecker = (data) => {
 	if (testVal !== true) error.push(testVal);
 	testVal = parser.orientation(data.orientation3, false);
 	if (testVal !== true) error.push(testVal);
+	testVal = parser.sort(data.sort, true);
+	if (testVal !== true) error.push(testVal);
 	_.forEach(data, (el, key) => {
 		if (key !== 'name' &&
 			key !== 'ageMin' &&
@@ -207,7 +209,8 @@ const searchChecker = (data) => {
 			key !== 'orientation1' &&
 			key !== 'orientation2' &&
 			key !== 'orientation3' &&
-			key !== 'popMax') {
+			key !== 'popMax' &&
+			key !== 'sort') {
 				error.push({ path: key, error: 'unauthorized' });
 			}
 	});

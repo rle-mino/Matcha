@@ -1,10 +1,6 @@
-import Joi						from 'joi';
 import _						from 'lodash';
-import mongoConnectAsync		from '../mongo';
 import sender					from '../sender';
 import * as notify				from '../notify';
-import * as userSchema			from '../schema/users';
-import * as authController		from './auth';
 import * as reportController	from './report';
 import * as tools				from '../tools';
 import * as tagController		from '../tag';
@@ -20,7 +16,7 @@ const getSingular = (sockList) => async (req, res) => {
 		notifications: 0,
 	});
 	if (!askedUser) return sender(res, false, `Error - ${username} not found`);
-	if (reportController.areBlocked(log.username, askedUser.username)) {
+	if (reportController.areBlocked(log, askedUser)) {
 		return (sender(res, false, 'user\'s blocked'));
 	}
 	const { birthdate, visit, interestCounter, interestedBy } = askedUser || '';
@@ -39,11 +35,18 @@ const getSingular = (sockList) => async (req, res) => {
 	const popularity = tools.getPopularity(visit, interestCounter);
 	const interToReq = !!_.find(interestedBy,
 					(likedUser) => likedUser === log.username);
+	const liked = log.interestedBy.indexOf(askedUser.username) !== -1;
+	let alreadyReportAsFake = false;
+	if (askedUser.reporterFake) {
+		alreadyReportAsFake = askedUser.reporterFake.indexOf(log.username) !== -1;
+	}
 	const allInfo = {
 		...askedUser,
 		popularity,
 		interToReq,
 		age,
+		liked,
+		alreadyReportAsFake,
 		location: askedUser.location ? askedUser.location.address : null,
 	};
 	if (askedUser.username === log.username) return (sender(res, true, 'success', allInfo));
@@ -64,56 +67,6 @@ const getSingular = (sockList) => async (req, res) => {
 	return (sender(res, true, 'success', sendableInfo));
 };
 
-const getFastDetails = (req, res) => {
-	// TODO update getFastDetails's function
-	const { error } = Joi.validate(req.query, userSchema.username);
-	if (error) return (res.status(400).send(error.details));
-	mongoConnectAsync(res, async (db) => {
-		const log = await authController.checkToken(req, db);
-		if (!log) return (res.status(401).send(authController.errorMessage));
-		const { username } = req.query;
-		const users = db.collection('users');
-		const askedUser = await users.findOne({ username }, {
-			username: 1,
-			firstname: 1,
-			lastname: 1,
-			image: 1,
-			tags: 1,
-			visit: 1,
-			interestCounter: 1,
-			birthdate: 1,
-			interestedBy: 1,
-			blockedBy: 1,
-		});
-		if (askedUser) {
-			if ((askedUser.blockedBy && askedUser.blockedBy.indexOf(log.username) !== -1) ||
-				(log.blockedBy && log.blockedBy.indexOf(askedUser.username) !== -1)) {
-				return (res.status(500).send('user\'s blocked'));
-			}
-			const { birthdate, interestCounter, visit, interestedBy } = askedUser || '';
-			const age = new Date().getFullYear() - new Date(birthdate).getFullYear();
-			const popularity = tools.getPopularity(visit, interestCounter);
-			const interToMe = _.find(interestedBy,
-							(likedUser) => likedUser === log.username);
-			const fastDetails = _.omit(askedUser, [
-				'interestedBy',
-				'birthdate',
-				'visit',
-				'interestCounter',
-				'blockedBy',
-			]);
-			return (sender(res, true, 'success', {
-				...fastDetails,
-				interToReq: !!interToMe,
-				age,
-				popularity,
-			}));
-		}
-		return (sender(res, false, `Error - ${username} not found`));
-	});
-	return (false);
-};
-
 const updateProfil = async (req, res) => {
 	const log = req.loggedUser;
 	const error = await parserController.updateProfileChecker(req.body);
@@ -124,4 +77,4 @@ const updateProfil = async (req, res) => {
 	return (sender(res, true, `${log.username}'s data successfully updated`));
 };
 
-export { getSingular, getFastDetails, updateProfil };
+export { getSingular, updateProfil };

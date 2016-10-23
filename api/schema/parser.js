@@ -164,6 +164,14 @@ const distPopTag = (val, required, path) => {
 	return (true);
 };
 
+const sort = (val, required) => {
+	const path = 'sort';
+	if (!val && !required) return (true);
+	if (!val && required) return ({ path, error: 'required' });
+	if (!val.match(/^(popularity|commonTags|distance|age)$/)) return ({ path, error: 'invalid' });
+	return (true);
+};
+
 export {
 	username,
 	password,
@@ -184,4 +192,5 @@ export {
 	ageMax,
 	ageMin,
 	name,
+	sort,
 };

@@ -37,7 +37,7 @@ const filterDist = async (results, req, distMin, distMax) => {
 			longitude: user.location.lng,
 		});
 		const kmDist = distance / 1000;
-		user.dist = kmDist;
+		user.distance = kmDist;
 		return (kmDist >= distMin && (kmDist <= distMax));
 	});
 };
@@ -140,6 +140,13 @@ const user = async (req, res) => {
 		'visiter',
 		'notifications',
 	]));
+	await results.sort((userA, userB) => {
+		if (query.sort === 'age' || query.sort === 'distance') {
+			console.log(userA[query.sort], userB[query.sort]);
+			return (+userA[query.sort] - +userB[query.sort]);
+		}
+		return (-userA[query.sort] - -userB[query.sort]);
+	});
 	return (sender(res, true, 'success', results));
 };
 

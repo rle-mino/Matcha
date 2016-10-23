@@ -61,7 +61,6 @@ io.on('connection', (socket) => {
 
 //		USER
 app.get('/api/user/singular/all', generalController.getSingular(users));
-app.get('/api/user/singular/fast', generalController.getFastDetails);
 // notifications
 app.get('/api/user/notification/latest', notify.get);
 // password
