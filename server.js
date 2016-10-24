@@ -1,4 +1,5 @@
 import express						from 'express';
+import moment						from 'moment';
 import bodyParser					from 'body-parser';
 import multer						from 'multer';
 import cors							from 'cors';
@@ -43,18 +44,29 @@ io.on('connection', (socket) => {
 		mongoConnectAsync(null, async (db) => {
 			const log = await authController.checkToken(data, db);
 			if (!log) return (socket.emit('connect status', 'unauthorized'));
+			db.collection('users').update(
+				{ username: log.username },
+				{ $set: { lastConnection: 'connected' },
+			});
 			if (!_.find(users, (user) => user.username === log.username)) {
 				users.push({ username: log.username, socket });
 			} else {
 				console.log('already in');
 			}
-			console.log(users.map((el) => el.username));
+			console.log('connect', users.map((el) => el.username));
 			return (socket.emit('connect status', 'approuved'));
 		});
 	});
 
 	socket.on('disconnect', () => {
-		_.remove(users, { socket });
+		mongoConnectAsync(null, async (db) => {
+			const toRemove = await _.find(users, { socket });
+			db.collection('users').update(
+				{ username: toRemove.username },
+				{ $set: { lastConnection: moment().format('MM-DD-YYYY') },
+			});
+			_.remove(users, { socket });
+		});
 		console.log(users.map((el) => el.username));
 	});
 });
@@ -94,6 +106,7 @@ app.put('/api/user/report/block', reportController.asBlocked);
 // search
 
 app.get('/api/user/search', searchController.user);
+app.get('/api/tag/search', searchController.tag);
 
 //		TAG
 app.get('/api/tag/all', tagController.getAll);

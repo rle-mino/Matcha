@@ -19,7 +19,7 @@ const updateInterest = (socketList) => async (req, res) => {
 	if (!liked) {
 		return (sender(res, false, 'user does not exist'));
 	}
-	if (liked === liker.username) {
+	if (liked.username === liker.username) {
 		return (sender(res, false, 'interest to himself impossible'));
 	}
 	if (reportController.areBlocked(liked, liker)) {

@@ -1,4 +1,5 @@
 import jwt						from 'jsonwebtoken';
+import moment					from 'moment';
 import sender					from '../sender';
 import mailer					from '../mail';
 import mongoConnectAsync		from '../mongo';
@@ -30,12 +31,17 @@ const register = async (req, res) => {
 		users.insert({
 			...req.body,
 			password: crypto.encrypt(password),
+			lastConnection: moment().format('MM-DD-YYYY'),
 			confirmationKey: token,
 			visit: 0,
 			visiter: [],
 			interestCounter: 0,
 			interestedBy: [],
 			interestedIn: [],
+			tags: [],
+			images: [],
+			blockedBy: [],
+			reporterFake: [],
 		});
 		await mailer(mail,
 					`Use this code to complete your registration ${token}`,

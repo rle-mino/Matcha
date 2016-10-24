@@ -1,3 +1,5 @@
+import geolib						from 'geolib';
+
 const roundTwo = (nb) => {
 	const nbM = nb * 100;
 	const nbR = Math.floor(nbM);
@@ -26,4 +28,17 @@ const getCommonTags = (userA, userB) => {
 	return (0);
 };
 
-export { roundTwo, getPopularity, getAge, getCommonTags };
+const getDistance = (userA, userB) => {
+	const distance = geolib.getDistance({
+			latitude: userA.location.lat,
+			longitude: userA.location.lng,
+		}, {
+			latitude: userB.location.lat,
+			longitude: userB.location.lng,
+		});
+		const kmDist = distance / 1000;
+		userB.distance = kmDist;
+		return (kmDist);
+};
+
+export { roundTwo, getPopularity, getAge, getCommonTags, getDistance };

@@ -1,5 +1,4 @@
 import _							from 'lodash';
-import geolib						from 'geolib';
 import sender						from '../sender';
 import * as parserController		from '../parserController';
 import * as tools					from '../tools';
@@ -28,18 +27,7 @@ const filterPop = async (results, popMin, popMax) => {
 };
 
 const filterDist = async (results, req, distMin, distMax) => {
-	return await results.filter((user) => {
-		const distance = geolib.getDistance({
-			latitude: req.loggedUser.location.lat,
-			longitude: req.loggedUser.location.lng,
-		}, {
-			latitude: user.location.lat,
-			longitude: user.location.lng,
-		});
-		const kmDist = distance / 1000;
-		user.distance = kmDist;
-		return (kmDist >= distMin && (kmDist <= distMax));
-	});
+	return await results.filter((user) => user.distance >= distMin && (user.distance <= distMax));
 };
 
 const getSearchOBJ = (query, req) => {
@@ -86,6 +74,7 @@ const addUsefullData = async (results, req) => {
 		user.age = tools.getAge(user.birthdate);
 		user.popularity = tools.getPopularity(user.visit, user.interestCounter);
 		user.commonTags = tools.getCommonTags(req.loggedUser, user);
+		user.distance = tools.getDistance(req.loggedUser, user);
 		return (user);
 	});
 };
@@ -142,7 +131,6 @@ const user = async (req, res) => {
 	]));
 	await results.sort((userA, userB) => {
 		if (query.sort === 'age' || query.sort === 'distance') {
-			console.log(userA[query.sort], userB[query.sort]);
 			return (+userA[query.sort] - +userB[query.sort]);
 		}
 		return (-userA[query.sort] - -userB[query.sort]);
@@ -150,4 +138,43 @@ const user = async (req, res) => {
 	return (sender(res, true, 'success', results));
 };
 
-export { user };
+const tag = async (req, res) => {
+	if (!req.query.tag) {
+		return (sender(res, false, 'invalid request', [{ path: 'tag', error: 'required' }]));
+	}
+	const users = req.db.collection('users');
+	let results = await users.find({
+		tags: { $in: [req.query.tag] },
+		confirmationKey: { $exists: false },
+		blockedBy: { $nin: [req.loggedUser.username] },
+	}).toArray();
+	results = await addUsefullData(results, req);
+	results = await results.filter((user) => {
+		if (req.loggedUser.blockedBy && req.loggedUser.blockedBy.indexOf(user.username) !== -1) {
+			return (false);
+		}
+		return (true);
+	});
+	results = await filterDist(results, req, 0, 100);
+	results = results.map((userOBJ) => _.omit(userOBJ, [
+		'password',
+		'birthdate',
+		'mail',
+		'visit',
+		'interestCounter',
+		'interestedBy',
+		'interestedIn',
+		'loginToken',
+		'token',
+		'tags',
+		'location',
+		'bio',
+		'reporterFake',
+		'blockedBy',
+		'visiter',
+		'notifications',
+	]));
+	return (sender(res, true, 'success', results));
+};
+
+export { user, tag };

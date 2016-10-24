@@ -21,8 +21,6 @@
     "eslint-plugin-import": "^1.13.0",
     "express": "^4.14.0",
     "express-jwt": "^5.1.0",
-    "external-ip": "^0.2.4",
-    "geo-from-ip": "^1.0.6",
     "geolib": "^2.0.21",
     "jimp": "^0.2.27",
     "joi": "^9.0.4",

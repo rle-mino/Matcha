@@ -16,13 +16,16 @@ const registerChecker = async (data) => {
 	if (testVal !== true) error.push(testVal);
 	testVal = parser.birthdate(data.birthdate, true);
 	if (testVal !== true) error.push(testVal);
+	testVal = parser.location(data.location, true);
+	if (testVal !== true) error.push(testVal);
 	_.forEach(data, (el, key) => {
 		if (key !== 'username' &&
 			key !== 'firstname' &&
 			key !== 'lastname' &&
 			key !== 'mail' &&
 			key !== 'birthdate' &&
-			key !== 'password') {
+			key !== 'password' &&
+			key !== 'location') {
 				error.push({ path: key, error: 'unauthorized' });
 			}
 	});
