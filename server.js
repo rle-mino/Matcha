@@ -9,6 +9,7 @@ import _							from 'lodash';
 import expressJWT					from 'express-jwt';
 import mongoConnectAsync			from './api/mongo';
 import addDetails					from './api/user/details';
+import suggestController			from './api/user/suggestion';
 import * as register				from './api/user/register';
 import * as passwordController		from './api/user/password';
 import * as generalController		from './api/user/general';
@@ -67,7 +68,7 @@ io.on('connection', (socket) => {
 			});
 			_.remove(users, { socket });
 		});
-		console.log(users.map((el) => el.username));
+		console.log('disconnect', users.map((el) => el.username));
 	});
 });
 
@@ -103,10 +104,13 @@ app.get('/api/user/get_images', imageController.getAll);
 // report
 app.put('/api/user/report/fake', reportController.asFake);
 app.put('/api/user/report/block', reportController.asBlocked);
-// search
 
+// search
 app.get('/api/user/search', searchController.user);
 app.get('/api/tag/search', searchController.tag);
+
+// suggestion
+app.get('/api/user/suggest', suggestController);
 
 //		TAG
 app.get('/api/tag/all', tagController.getAll);

@@ -69,16 +69,6 @@ const getSearchOBJ = (query, req) => {
 	return (searchOBJ);
 };
 
-const addUsefullData = async (results, req) => {
-	return await results.map((user) => {
-		user.age = tools.getAge(user.birthdate);
-		user.popularity = tools.getPopularity(user.visit, user.interestCounter);
-		user.commonTags = tools.getCommonTags(req.loggedUser, user);
-		user.distance = tools.getDistance(req.loggedUser, user);
-		return (user);
-	});
-};
-
 const user = async (req, res) => {
 	const error = parserController.searchChecker(req.query);
 	if (error) return (sender(res, false, 'invalid request', error));
@@ -88,7 +78,7 @@ const user = async (req, res) => {
 	const searchOBJ = await getSearchOBJ(query, req);
 	results = await users.find(searchOBJ).toArray();
 	// add usefull data
-	results = await addUsefullData(results, req);
+	results = await tools.addUsefullData(results, req);
 	// filter dist
 	const distMin = parseInt(query.distMin, 10);
 	const distMax = parseInt(query.distMax, 10);
@@ -135,6 +125,7 @@ const user = async (req, res) => {
 		}
 		return (-userA[query.sort] - -userB[query.sort]);
 	});
+	results = results.slice(0, 40);
 	return (sender(res, true, 'success', results));
 };
 
@@ -148,7 +139,7 @@ const tag = async (req, res) => {
 		confirmationKey: { $exists: false },
 		blockedBy: { $nin: [req.loggedUser.username] },
 	}).toArray();
-	results = await addUsefullData(results, req);
+	results = await tools.addUsefullData(results, req);
 	results = await results.filter((user) => {
 		if (req.loggedUser.blockedBy && req.loggedUser.blockedBy.indexOf(user.username) !== -1) {
 			return (false);

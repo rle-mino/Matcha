@@ -41,4 +41,53 @@ const getDistance = (userA, userB) => {
 		return (kmDist);
 };
 
-export { roundTwo, getPopularity, getAge, getCommonTags, getDistance };
+const addUsefullData = async (results, req) => {
+	return await results.map((user) => {
+		user.age = getAge(user.birthdate);
+		user.popularity = getPopularity(user.visit, user.interestCounter);
+		user.commonTags = getCommonTags(req.loggedUser, user);
+		user.distance = getDistance(req.loggedUser, user);
+		return (user);
+	});
+};
+
+const getAgeScore = (ageA, ageB) => {
+	const ageDiff = ageA - ageB;
+	if (ageDiff < 2 || ageDiff > -2) return 100;
+	else if (ageDiff < 5 || ageDiff > -5) return 75;
+	else if (ageDiff < 10 || ageDiff > -10) return 50;
+	else if (ageDiff < 20 || ageDiff > -20) return 25;
+	return (0);
+};
+
+const getDistScore = (dist) => {
+	if (dist < 5) return (100);
+	else if (dist < 10) return (75);
+	else if (dist < 20) return (50);
+	else if (dist < 30) return (25);
+	return (0);
+};
+
+const getCommonTagsScore = (comTags) => {
+	if (comTags > 25) return (100);
+	else if (comTags > 18) return (75);
+	else if (comTags > 10) return (50);
+	else if (comTags > 5) return (25);
+	return (0);
+};
+
+const getPopScore = (pop) => {
+	return (pop * 10);
+};
+
+export { roundTwo,
+	getPopularity,
+	getAge,
+	getCommonTags,
+	getDistance,
+	addUsefullData,
+	getAgeScore,
+	getDistScore,
+	getCommonTagsScore,
+	getPopScore,
+};
