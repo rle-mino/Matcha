@@ -7,6 +7,7 @@ import http							from 'http';
 import socketIo						from 'socket.io';
 import _							from 'lodash';
 import expressJWT					from 'express-jwt';
+import updateMail					from './api/user/updateMail';
 import mongoConnectAsync			from './api/mongo';
 import addDetails					from './api/user/details';
 import suggestController			from './api/user/suggestion';
@@ -14,7 +15,6 @@ import * as register				from './api/user/register';
 import * as passwordController		from './api/user/password';
 import * as generalController		from './api/user/general';
 import * as imageController			from './api/user/image';
-import * as updateMailController	from './api/user/updateMail';
 import * as interestController		from './api/user/interest';
 import * as authController			from './api/user/auth';
 import * as deleteController		from './api/user/delete';
@@ -73,13 +73,15 @@ io.on('connection', (socket) => {
 });
 
 //		USER
+app.get('/api/user/checkAuth', (req, res) => res.send({ status: true, details: 'success' }));
+
 app.get('/api/user/singular/all', generalController.getSingular(users));
 // notifications
 app.get('/api/user/notification/latest', notify.get);
 // password
 app.put('/api/user/forgot_password', passwordController.forgot);
 app.put('/api/user/reset_password', passwordController.resetWithKey);
-app.put('/api/user/update/password', passwordController.changePassword);
+app.put('/api/user/update_password', passwordController.changePassword);
 // add/update global info
 app.put('/api/user/add_details', addDetails);
 app.post('/api/user/register', register.register);
@@ -89,8 +91,7 @@ app.put('/api/user/update_profile', generalController.updateProfil);
 app.put('/api/user/update_interest', interestController.updateInterest(users));
 app.get('/api/user/get/self_interest', interestController.selfInterest);
 // update mail
-app.put('/api/user/update/mail1o2', updateMailController.updateMail1o2);
-app.put('/api/user/update/mail2o2', updateMailController.updateMail2o2);
+app.put('/api/user/update_mail', updateMail);
 // delete
 app.put('/api/user/delete/send_delete', deleteController.deleteProfile1o2);
 app.delete('/api/user/delete', deleteController.deleteProfile2o2);

@@ -18,6 +18,24 @@ const password = (pass, checkSecure) => {
 	return (true);
 };
 
+const newPassword = (pass, checkSecure) => {
+	const path = 'newPassword';
+	if (!pass) return ({ path, error: 'required' });
+	if (!!checkSecure && !pass.match(/(?=.*\w)(?=.*\d)(?=.*[A-Z]).{8}/)) {
+		return ({ path, error: 'unsecure password' });
+	}
+	return (true);
+};
+
+const oldPassword = (pass, checkSecure) => {
+	const path = 'oldPassword';
+	if (!pass) return ({ path, error: 'required' });
+	if (!!checkSecure && !pass.match(/(?=.*\w)(?=.*\d)(?=.*[A-Z]).{8}/)) {
+		return ({ path, error: 'unsecure password' });
+	}
+	return (true);
+};
+
 const firstnameLastname = (name, required, first) => {
 	const path = first ? 'firstname' : 'lastname';
 	if (name === '') return ({ path, error: '1 characters min' });
@@ -193,4 +211,6 @@ export {
 	ageMin,
 	name,
 	sort,
+	newPassword,
+	oldPassword,
 };

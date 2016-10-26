@@ -220,6 +220,33 @@ const searchChecker = (data) => {
 	return (!error.length ? null : error);
 };
 
+const changePasswordChecker = (data) => {
+	const error = [];
+	let testVal = null;
+	testVal = parser.oldPassword(data.oldPassword, false);
+	if (testVal !== true) error.push(testVal);
+	testVal = parser.newPassword(data.newPassword, true);
+	if (testVal !== true) error.push(testVal);
+	_.forEach(data, (el, key) => {
+		if (key !== 'newPassword' &&
+			key !== 'oldPassword') {
+				error.push({ path: key, error: 'unauthorized' });
+			}
+	});
+	return (!error.length ? null : error);
+};
+
+const updateMailChecker = (data) => {
+	const error = [];
+	let testVal = null;
+	testVal = parser.mail(data.mail, true);
+	if (testVal !== true) error.push(testVal);
+	_.forEach(data, (el, key) => {
+		if (key !== 'mail') error.push({ path: key, error: 'unauthorized' });
+	});
+	return (!error.length ? null : error);
+};
+
 export {
 	registerChecker,
 	loginChecker,
@@ -230,4 +257,6 @@ export {
 	removeIMGChecker,
 	updateProfileChecker,
 	searchChecker,
+	changePasswordChecker,
+	updateMailChecker,
 };

@@ -5,6 +5,7 @@ import * as parserController	from '../parserController';
 import * as crypto				from '../crypto';
 
 const forgot = async (req, res) => {
+	// UPDATE REQUIRED
 	const error = await parserController.forgotPasswordChecker(req.body);
 	if (error) return (sender(res, false, 'invalid request', error));
 	mongoConnectAsync(res, async (db) => {
@@ -20,24 +21,22 @@ const forgot = async (req, res) => {
 	return (false);
 };
 
-const changePassword = (req, res) => {
-	// const { error } = Joi.validate(req.body, userSchema.changePassword, { abortEarly: false });
-	// if (error) return (res.status(400).send(error.details));
-	mongoConnectAsync(res, async (db) => {
-		const { username, oldPassword, newPassword } = req.body;
-		const users = db.collection('users');
-		const oldCryptedPassword = crypto.encrypt(oldPassword);
-		const newCryptedPassword = crypto.encrypt(newPassword);
-		const already = await users.findOneAndUpdate({ username, password: oldCryptedPassword },
-													{ $set: { password: newCryptedPassword } },
-													{ returnNewDocument: true });
-		if (already.value) return (res.status(200).send(`${username}'s password has been updated`));
-		return (res.status(500).send(`${username} does not exist or old password is invalid`));
-	});
-	return (false);
+const changePassword = async (req, res) => {
+	const error = parserController.changePasswordChecker(req.body);
+	if (error) return (sender(res, false, 'invalid request', error));
+	const { oldPassword, newPassword } = req.body;
+	const users = req.db.collection('users');
+	const oldCryptedPassword = crypto.encrypt(oldPassword);
+	const newCryptedPassword = crypto.encrypt(newPassword);
+	if (req.loggedUser.password !== oldCryptedPassword) {
+		return (sender(res, false, 'user does not exist or old password is invalid'));
+	}
+	users.update({ username: req.loggedUser.username }, { $set: { password: newCryptedPassword } });
+	return (sender(res, true, `${req.loggedUser.username}'s password has been updated`));
 };
 
 const resetWithKey = (req, res) => {
+	// UPDATE REQUIRED
 	const error = parserController.resetWithKeyChecker(req.body);
 	if (error) return (sender(res, false, 'invalid request', error));
 	mongoConnectAsync(res, async (db) => {

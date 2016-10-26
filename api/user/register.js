@@ -73,6 +73,9 @@ const confirmMail = async (req, res) => {
 			$set: { token },
 		});
 		authController.setHeader(res, token);
+		if (askedUser.orientation) {
+			return (sender(res, true, 'mail successfully confirmed'));
+		}
 		return (sender(res, true, 'account successfully activated'));
 	});
 	return (false);
