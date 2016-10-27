@@ -51,9 +51,7 @@ io.on('connection', (socket) => {
 			});
 			if (!_.find(users, (user) => user.username === log.username)) {
 				users.push({ username: log.username, socket });
-			} else {
-				console.log('already in');
-			}
+			} else console.log('already in');
 			console.log('connect', users.map((el) => el.username));
 			return (socket.emit('connect status', 'approuved'));
 		});
@@ -61,14 +59,14 @@ io.on('connection', (socket) => {
 
 	socket.on('disconnect', () => {
 		mongoConnectAsync(null, async (db) => {
-			const toRemove = await _.find(users, { socket });
+			const toRemove = await _.find(users, (user) => _.isEqual(user.socket, socket));
 			db.collection('users').update(
 				{ username: toRemove.username },
 				{ $set: { lastConnection: moment().format('MM-DD-YYYY') },
 			});
-			_.remove(users, { socket });
+			_.remove(users, toRemove);
+			console.log('disconnect', users.map((el) => el.username));
 		});
-		console.log('disconnect', users.map((el) => el.username));
 	});
 });
 
@@ -89,7 +87,7 @@ app.put('/api/user/confirm_mail', register.confirmMail);
 app.put('/api/user/update_profile', generalController.updateProfil);
 // interest
 app.put('/api/user/update_interest', interestController.updateInterest(users));
-app.get('/api/user/get/self_interest', interestController.selfInterest);
+app.get('/api/user/get_self_interest', interestController.selfInterest);
 // update mail
 app.put('/api/user/update_mail', updateMail);
 // delete
