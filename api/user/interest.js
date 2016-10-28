@@ -89,7 +89,7 @@ const selfInterest = async (req, res) => {
 				image: obj.userA.image,
 				username: obj.userA.username,
 			},
-			message: obj.messages,
+			messages: obj.messages,
 		});
 	});
 	return (sender(res, true, 'success', final));

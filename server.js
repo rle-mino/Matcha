@@ -51,6 +51,24 @@ io.on('connection', (socket) => {
 			});
 			if (!_.find(users, (user) => user.username === log.username)) {
 				users.push({ username: log.username, socket });
+				socket.on('send message', async ({ receiver, message }) => {
+					const connected = await db.collection('chats').findOne({
+						$or: [
+							{ 'userA.username': log.username, 'userB.username': receiver },
+							{ 'userA.username': receiver, 'userB.username': log.username },
+						],
+					});
+					if (connected) {
+						const toSend = _.find(users, (user) => user.username === receiver);
+						if (toSend) {
+							toSend.socket.emit('receive message', {
+								author: log.username,
+								message,
+							});
+						// add message to database
+						}
+					}
+				});
 			} else console.log('already in');
 			console.log('connect', users.map((el) => el.username));
 			return (socket.emit('connect status', 'approuved'));
@@ -64,7 +82,7 @@ io.on('connection', (socket) => {
 				{ username: toRemove.username },
 				{ $set: { lastConnection: moment().format('MM-DD-YYYY') },
 			});
-			_.remove(users, toRemove);
+			_.remove(users, (user) => _.isEqual(user.socket, socket));
 			console.log('disconnect', users.map((el) => el.username));
 		});
 	});
