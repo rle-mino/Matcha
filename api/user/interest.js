@@ -71,8 +71,8 @@ const updateInterest = (socketList) => async (req, res) => {
 const selfInterest = async (req, res) => {
 	const chats = req.db.collection('chats');
 	const compatibleUser = await chats.find({ $or: [
-		{ 'userA.username': 'raph' },
-		{ 'userB.username': 'raph' },
+		{ 'userA.username': req.loggedUser.username },
+		{ 'userB.username': req.loggedUser.username },
 		] }).toArray();
 	const final = compatibleUser.map((obj) => {
 		if (obj.userA.username === req.loggedUser.username) {

@@ -60,13 +60,18 @@ io.on('connection', (socket) => {
 					});
 					if (connected) {
 						const toSend = _.find(users, (user) => user.username === receiver);
-						if (toSend) {
-							toSend.socket.emit('receive message', {
-								author: log.username,
-								message,
-							});
-						// add message to database
-						}
+						const messageData = {
+							author: log.username,
+							message,
+						};
+						if (toSend) toSend.socket.emit('receive message', messageData);
+						db.collection('chats').update({ $or: [
+								{ 'userA.username': log.username, 'userB.username': receiver },
+								{ 'userA.username': receiver, 'userB.username': log.username },
+							] }, {
+								$push: { messages: { $each: [messageData], $position: 0 } },
+							}
+						);
 					}
 				});
 			} else console.log('already in');
