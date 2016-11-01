@@ -9,7 +9,8 @@ const addDetails = async (req, res) => {
 	const log = req.loggedUser;
 	const users = req.db.collection('users');
 	const orientation = req.body.orientation || 'bisexual';
-	if (req.body.location.address.includes('LOCATE ME')) {
+	if (req.body.location.address.includes('LOCATE ME') ||
+		req.body.location.address.includes('USER DENIED GEOLOCATION')) {
 		req.body = _.omit(req.body, ['location']);
 	}
 	const detailsAndRegisterData = {

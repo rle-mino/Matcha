@@ -29,12 +29,16 @@ const add = (upload) => (req, res) => {
 		}
 		const log = req.loggedUser;
 		if (!log) {
-			fs.unlinkSync(`${__dirname}/../../public/${req.file.filename}`);
+			fs.readFile(`${__dirname}/../../public/${req.file.filename}`, (error) => {
+				if (!error) fs.unlinkSync(`${__dirname}/../../public/${req.file.filename}`);
+			});
 			return (res.send(authController.errorMessage));
 		}
 		const filename = await addExtensionFilename(req.file.filename, req.file.mimetype);
 		if (log.images && log.images.length === 5) {
-			fs.unlinkSync(`${__dirname}/../../public/${filename}`);
+			fs.readFile(`${__dirname}/../../public/${req.file.filename}`, (error) => {
+				if (!error) fs.unlinkSync(`${__dirname}/../../public/${filename}`);
+			});
 			return (sender(res, false, `${log.username} already have 5 images`));
 		}
 		const users = req.db.collection('users');
@@ -52,12 +56,12 @@ const remove = async (req, res) => {
 	const users = req.db.collection('users');
 	const index = log.images ? log.images.indexOf(imgID) : -1;
 	if (index === -1) return (sender(res, false, 'this image does not exists'));
-	try {
-		fs.unlink(`${__dirname}/../../public/${imgID}`);
-		fs.unlink(`${__dirname}/../../public/min/${imgID}`);
-	} catch (err) {
-		console.log('already removed');
-	}
+	fs.readFile(`${__dirname}/../../public/${imgID}`, (err) => {
+		if (!err) fs.unlinkSync(`${__dirname}/../../public/${imgID}`);
+	});
+	fs.readFile(`${__dirname}/../../public/min/${imgID}`, (err) => {
+		if (!err) fs.unlinkSync(`${__dirname}/../../public/min/${imgID}`);
+	});
 	log.images.splice(index, 1);
 	await users.update({ username: log.username }, { $set: { images: log.images } });
 	return (sender(res, true, 'image removed'));

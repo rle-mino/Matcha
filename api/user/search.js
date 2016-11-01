@@ -140,8 +140,8 @@ const tag = async (req, res) => {
 		blockedBy: { $nin: [req.loggedUser.username] },
 	}).toArray();
 	results = await tools.addUsefullData(results, req);
-	results = await results.filter((user) => {
-		if (req.loggedUser.blockedBy && req.loggedUser.blockedBy.indexOf(user.username) !== -1) {
+	results = await results.filter((el) => {
+		if (req.loggedUser.blockedBy && req.loggedUser.blockedBy.indexOf(el.username) !== -1) {
 			return (false);
 		}
 		return (true);

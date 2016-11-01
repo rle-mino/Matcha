@@ -22,6 +22,7 @@ import * as reportController		from './api/user/report';
 import * as searchController		from './api/user/search';
 import * as notify					from './api/notify';
 import * as tagController			from './api/tag';
+import * as parser					from './api/schema/parser';
 
 const app = express();
 const server = http.createServer(app);
@@ -51,30 +52,31 @@ io.on('connection', (socket) => {
 			});
 			if (!_.find(users, (user) => user.username === log.username)) {
 				users.push({ username: log.username, socket });
-				socket.on('send message', async ({ receiver, message }) => {
+				socket.on('send message', async ({ recipient, message }) => {
+					if (!parser.message(message)) return (false);
 					const connected = await db.collection('chats').findOne({
 						$or: [
-							{ 'userA.username': log.username, 'userB.username': receiver },
-							{ 'userA.username': receiver, 'userB.username': log.username },
+							{ 'userA.username': log.username, 'userB.username': recipient },
+							{ 'userA.username': recipient, 'userB.username': log.username },
 						],
 					});
 					if (connected) {
-						const toSend = _.find(users, (user) => user.username === receiver);
+						const toSend = _.find(users, (user) => user.username === recipient);
 						const messageData = {
 							author: log.username,
 							message,
 						};
 						if (toSend) toSend.socket.emit('receive message', messageData);
 						db.collection('chats').update({ $or: [
-								{ 'userA.username': log.username, 'userB.username': receiver },
-								{ 'userA.username': receiver, 'userB.username': log.username },
+								{ 'userA.username': log.username, 'userB.username': recipient },
+								{ 'userA.username': recipient, 'userB.username': log.username },
 							] }, {
-								$push: { messages: { $each: [messageData], $position: 0 } },
+								$push: { messages: messageData },
 							}
 						);
 					}
 				});
-			} else console.log('already in');
+			}
 			console.log('connect', users.map((el) => el.username));
 			return (socket.emit('connect status', 'approuved'));
 		});

@@ -106,6 +106,12 @@ const tags = (tagsList, required) => {
 	if (!tagsList && !required) return (true);
 	if (!tagsList && !!required) return ({ path, error: 'required' });
 	if (!(tagsList instanceof Array)) return ({ path, error: 'needs to be an array' });
+	const invalidTags = tagsList.filter((tag) => {
+		if (tag.match(/^[a-zA-Z0-9 .,:;\?!'-\s]+$/)) return (true);
+		if (tag.length < 1 || tag.length > 16) return (true);
+		return (false);
+	});
+	if (invalidTags && invalidTags.length) return ({ path, error: 'invalid tags' });
 	return (true);
 };
 
@@ -190,6 +196,12 @@ const sort = (val, required) => {
 	return (true);
 };
 
+const message = (val) => {
+	if (!val || val === '') return (false);
+	if (!val.match || !val.match(/^[a-zA-Z0-9 .,:;\?!'-\s]+$/)) return (false);
+	return (true);
+};
+
 export {
 	username,
 	password,
@@ -213,4 +225,5 @@ export {
 	sort,
 	newPassword,
 	oldPassword,
+	message,
 };
