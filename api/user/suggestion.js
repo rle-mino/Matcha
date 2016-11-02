@@ -1,5 +1,6 @@
 import _					from 'lodash';
 import sender				from '../sender';
+import * as report			from './report';
 import * as tools			from '../tools';
 
 const getSearchOBJ = (gender, orientation) => {
@@ -47,11 +48,10 @@ const suggestion = async (req, res) => {
 		bio: 0,
 		interestedIn: 0,
 		interestedBy: 0,
-		blockedBy: 0,
 		reporterFake: 0,
 	}).toArray();
+	results = await results.filter((user) => !report.areBlocked(user, req.loggedUser));
 	results = await tools.addUsefullData(results, req);
-	// TO FINISH
 	const age = tools.getAge(req.loggedUser.birthdate);
 	results = results.map((user) => {
 		user.score = tools.getAgeScore(user.age, age);
