@@ -45,7 +45,7 @@ io.on('connection', (socket) => {
 	socket.on('auth', (data) => {
 		mongoConnectAsync(null, async (db) => {
 			const log = await authController.checkToken(data, db);
-			
+
 			if (!log) return (socket.emit('connect status', 'unauthorized'));
 			db.collection('users').update(
 				{ username: log.username },
@@ -54,8 +54,8 @@ io.on('connection', (socket) => {
 
 			if (!_.find(users, (user) => user.username === log.username)) {
 				users.push({ username: log.username, socket });
-				socket.on('send message', async ({ recipient, message }) => {
 
+				socket.on('send message', async ({ recipient, message }) => {
 					if (!parser.message(message)) return (false);
 					const connected = await db.collection('chats').findOne({
 						$or: [
@@ -72,6 +72,18 @@ io.on('connection', (socket) => {
 						};
 
 						if (toSend) toSend.socket.emit('receive message', messageData);
+						else {
+							// to check
+							db.collection('user').update({ username: recipient }, {
+								$addToSet: {
+									notifications: {
+										$each: [
+											`${log.username} sent you a message`,
+											],
+										},
+									},
+							});
+						}
 						db.collection('chats').update({ $or: [
 								{ 'userA.username': log.username, 'userB.username': recipient },
 								{ 'userA.username': recipient, 'userB.username': log.username },
