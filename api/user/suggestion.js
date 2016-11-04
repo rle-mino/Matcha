@@ -71,7 +71,7 @@ const suggestion = async (req, res) => {
 		'score',
 	]));
 	results = results.slice(0, 10);
-	sender(res, true, 'succes', results);
+	sender(res, true, 'success', results);
 };
 
 export default suggestion;

@@ -73,16 +73,17 @@ io.on('connection', (socket) => {
 
 						if (toSend) toSend.socket.emit('receive message', messageData);
 						else {
-							// to check
-							db.collection('user').update({ username: recipient }, {
-								$addToSet: {
+							db.collection('users').update({ username: recipient }, {
+								$push: {
 									notifications: {
 										$each: [
 											`${log.username} sent you a message`,
-											],
-										},
+										],
+										$position: 0,
+										$slice: 7,
 									},
-							});
+								},
+							}, (err, info) => console.log(err || info.result));
 						}
 						db.collection('chats').update({ $or: [
 								{ 'userA.username': log.username, 'userB.username': recipient },

@@ -37,8 +37,7 @@ const getDistance = (userA, userB) => {
 			longitude: userB.location.lng,
 		});
 		const kmDist = distance / 1000;
-		userB.distance = kmDist;
-		return (kmDist);
+		return (Math.floor(kmDist));
 };
 
 const addUsefullData = async (results, req) => {
