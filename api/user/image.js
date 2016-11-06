@@ -8,7 +8,7 @@ import * as parserController	from '../parserController';
 const createMini = async (filename) => {
 	Jimp.read(`${path.resolve('public')}/${filename}`, (err, file) => {
 		if (err) return (false);
-		file.resize(96, Jimp.AUTO).write(`${path.resolve('public')}/min/${filename}`);
+		file.resize(128, Jimp.AUTO).write(`${path.resolve('public')}/min/${filename}`);
 		return (true);
 	});
 };

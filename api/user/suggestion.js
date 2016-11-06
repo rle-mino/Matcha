@@ -40,7 +40,6 @@ const suggestion = async (req, res) => {
 	const searchOBJ = getSearchOBJ(req.loggedUser.gender, req.loggedUser.orientation);
 	const users = req.db.collection('users');
 	let results = await users.find(searchOBJ, {
-		_id: 0,
 		password: 0,
 		notifications: 0,
 		token: 0,
@@ -50,8 +49,9 @@ const suggestion = async (req, res) => {
 		interestedBy: 0,
 		reporterFake: 0,
 	}).toArray();
-	results = await results.filter((user) => !report.areBlocked(user, req.loggedUser));
+	results = results.filter((user) => !report.areBlocked(user, req.loggedUser));
 	results = await tools.addUsefullData(results, req);
+	results = results.filter((user) => user.distance < 100);
 	const age = tools.getAge(req.loggedUser.birthdate);
 	results = results.map((user) => {
 		user.score = tools.getAgeScore(user.age, age);
@@ -69,6 +69,7 @@ const suggestion = async (req, res) => {
 		'tags',
 		'visiter',
 		'score',
+		'blockedBy',
 	]));
 	results = results.slice(0, 10);
 	sender(res, true, 'success', results);
