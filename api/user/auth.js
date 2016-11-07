@@ -75,7 +75,7 @@ const uncheckedPath = [
 ];
 
 const checkTokenMid = (req, res, next) => {
-	if (uncheckedPath.indexOf(req.path) !== -1) return (next());
+	if (uncheckedPath.indexOf(req.path) !== -1 || !req.path.includes('/api')) return (next());
 	const token = getToken(req);
 	if (!token) return (sender(res, false, 'user unauthorized'));
 	jwt.verify(token, secret, (err) => {

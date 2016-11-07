@@ -1,4 +1,5 @@
 import express						from 'express';
+import path							from 'path';
 import moment						from 'moment';
 import bodyParser					from 'body-parser';
 import multer						from 'multer';
@@ -40,6 +41,7 @@ app.use(expressJWT({
 }).unless({ path: authController.uncheckedPath }));
 app.use(authController.error);
 app.use(authController.checkTokenMid);
+app.use(express.static(path.resolve(__dirname, 'build')));
 
 io.on('connection', (socket) => {
 	socket.on('auth', (data) => {
@@ -83,7 +85,7 @@ io.on('connection', (socket) => {
 										$slice: 7,
 									},
 								},
-							}, (err, info) => console.log(err || info.result));
+							});
 						}
 						db.collection('chats').update({ $or: [
 								{ 'userA.username': log.username, 'userB.username': recipient },
@@ -156,5 +158,7 @@ app.get('/api/user/suggest', suggestController);
 
 //		TAG
 app.get('/api/tag/all', tagController.getAll);
+app.get('*', (req, res) =>
+	res.sendFile(path.resolve(__dirname, 'build', 'index.html')));
 
 server.listen(8080, () => console.log('SERVER STARTED'));
