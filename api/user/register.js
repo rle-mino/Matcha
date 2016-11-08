@@ -9,24 +9,12 @@ import * as authController		from './auth';
 
 const register = async (req, res) => {
 	const error = await parserController.registerChecker(req.body);
-	if (error) {
-		return (res.send({
-			status: false,
-			details: 'invalid request',
-			error,
-		}));
-	}
+	if (error) return (sender(res, false, 'invalid request', error));
 	mongoConnectAsync(res, async (db) => {
 		const { password, username, mail } = req.body;
 		const users = db.collection('users');
 		const already = await users.findOne({ $or: [{ username }, { mail }] });
-		if (already) {
-			return (res.send({
-				status: false,
-				details: 'already exists',
-				error: `${already.username === username ? username : mail} already exists`,
-			}));
-		}
+		if (already) return (sender(res, false, 'already exists'));
 		const token = crypto.miniTokenGenerator();
 		users.insert({
 			...req.body,
@@ -43,13 +31,10 @@ const register = async (req, res) => {
 			blockedBy: [],
 			reporterFake: [],
 		});
-		await mailer(mail,
+		mailer(mail,
 					`Use this code to complete your registration ${token}`,
 					'Complete your registration');
-		return (res.send({
-			status: true,
-			details: `${username} has been successfully registred !`,
-		}));
+		return (sender(res, true, `${username} has been successfully registred !`));
 	});
 	return (false);
 };

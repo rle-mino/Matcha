@@ -3,7 +3,7 @@ import sender				from '../sender';
 import * as report			from './report';
 import * as tools			from '../tools';
 
-const getSearchOBJ = (gender, orientation) => {
+const getSearchOBJ = (gender, orientation, username) => {
 	let searchOBJ = null;
 	if (gender !== 'other') {
 		let sex = null;
@@ -33,11 +33,16 @@ const getSearchOBJ = (gender, orientation) => {
 			};
 		}
 	} else searchOBJ = { gender: 'other' };
+	searchOBJ.username = { $ne: username };
 	return (searchOBJ);
 };
 
 const suggestion = async (req, res) => {
-	const searchOBJ = getSearchOBJ(req.loggedUser.gender, req.loggedUser.orientation);
+	const searchOBJ = getSearchOBJ(
+		req.loggedUser.gender,
+		req.loggedUser.orientation,
+		req.loggedUser.username
+	);
 	const users = req.db.collection('users');
 	let results = await users.find(searchOBJ, {
 		password: 0,

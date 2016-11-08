@@ -5,7 +5,8 @@ import * as parserController	from '../parserController';
 
 const addDetails = async (req, res) => {
 	const error = await parserController.detailsChecker(req.body);
-	if (error) return (sender(res, false, 'invalid requiest', error));
+	console.log(error);
+	if (error) return (sender(res, false, 'invalid request', error));
 	const log = req.loggedUser;
 	const users = req.db.collection('users');
 	const orientation = req.body.orientation || 'bisexual';

@@ -31,7 +31,6 @@ const getSingular = (sockList) => async (req, res) => {
 		}
 	}
 	const age = tools.getAge(birthdate);
-	// CHANGED
 	const popularity = tools.getPopularity(visit, interestCounter);
 	const interToReq = !!_.find(interestedBy,
 					(likedUser) => likedUser === log.username);
