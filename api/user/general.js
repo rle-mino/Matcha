@@ -47,6 +47,7 @@ const getSingular = (sockList) => async (req, res) => {
 		liked,
 		alreadyReportAsFake,
 		location: askedUser.location ? askedUser.location.address : null,
+		selfReq: askedUser.username === req.loggedUser.username,
 	};
 	if (askedUser.username === log.username) return (sender(res, true, 'success', allInfo));
 	const sendableInfo = await _.omit(allInfo, [

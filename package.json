@@ -6,7 +6,7 @@
   "repository": "https://github.com/rle-mino/Matcha",
   "scripts": {
     "babel-node": "babel-node --debug --presets=es2015",
-    "start": "nodemon --exec npm run babel-node -- server.js"
+    "start": "nodemon --exec npm run babel-node -- server.js --debug"
   },
   "author": "rle-mino",
   "license": "MIT",

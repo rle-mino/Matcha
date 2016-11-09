@@ -60,7 +60,8 @@ const getSearchOBJ = (query, req) => {
 			return ({ username: blocked });
 		});
 		if (blockedUsernames.length > 0) {
-			searchOBJ.$and[searchOBJ.$and.length].$nor = blockedUsernames;
+			searchOBJ.$and[searchOBJ.$and.length] = { $nor: [] };
+			searchOBJ.$and[searchOBJ.$and.length - 1].$nor = blockedUsernames;
 		}
 	}
 	if (searchOBJ.$and.length === 0) {

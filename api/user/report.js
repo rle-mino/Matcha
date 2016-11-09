@@ -57,6 +57,9 @@ const asBlocked = async (req, res) => {
 	const users = req.db.collection('users');
 	const askedUser = await users.findOne({ username });
 	if (!askedUser) return (sender(res, false, `${username} does not exist`));
+	if (askedUser.username === req.loggedUser.username) {
+		return (sender(res, false, 'impossible to block yourself'));
+	}
 	blockUser(users, username, log.username);
 	return (sender(res, true, `${username} has been successfully blocked by ${log.username}`));
 };
