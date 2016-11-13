@@ -5,12 +5,11 @@ import * as parserController	from '../parserController';
 
 const addDetails = async (req, res) => {
 	const error = await parserController.detailsChecker(req.body);
-	console.log(error);
 	if (error) return (sender(res, false, 'invalid request', error));
 	const log = req.loggedUser;
 	const users = req.db.collection('users');
 	const orientation = req.body.orientation || 'bisexual';
-	if (req.body.location.address.includes('LOCATE ME') ||
+	if (!req.body.location || req.body.location.address.includes('LOCATE ME') ||
 		req.body.location.address.includes('USER DENIED GEOLOCATION')) {
 		req.body = _.omit(req.body, ['location']);
 	}

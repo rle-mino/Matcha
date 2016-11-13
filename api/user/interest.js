@@ -36,7 +36,7 @@ const updateInterest = (socketList) => async (req, res) => {
 		if (liker.interestedIn.indexOf(liked.username) !== -1) {
 			chats.remove({ $or: [
 				{ 'userA.username': liker.username, 'userB.username': liked.username },
-				{ 'userA.username': liked.username, 'userB.username': liked.username },
+				{ 'userA.username': liked.username, 'userB.username': liker.username },
 			] });
 			notify.send(socketList, req.db,
 				`${liker.username} is no longer interested in your profile`, liked);
@@ -49,7 +49,7 @@ const updateInterest = (socketList) => async (req, res) => {
 			$inc: { interestCounter: 1 },
 			$addToSet: { interestedIn: { $each: [liker.username], $position: 0 } },
 		});
-		if (liker.interestedIn.indexOf(liked.username) !== -1) {
+		if (liked.interestedBy.indexOf(liker.username) !== -1) {
 			chats.insert({
 				userA: {
 					username: liker.username,
